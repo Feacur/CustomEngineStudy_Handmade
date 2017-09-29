@@ -1,3 +1,7 @@
+/[Dd]ata/
+/[Bb]uild/
+/[Bb]uilds/
+
 # Prerequisites
 *.d
 
