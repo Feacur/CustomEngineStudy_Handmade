@@ -1,9 +1,9 @@
 #include "shared/image_bitmap.h"
 
-GLOBAL_VARIABLE RGBA_Data test_texture;
+GLOBAL_VAR RGBA_Data test_texture;
 
 void init_test_assets(Platform_Data *data) {
-	PERSISTENT_LOCAL_VARIABLE bool initialized = false;
+	PERSISTENT_LOCAL_VAR bool initialized = false;
 	if (!initialized) {
 		initialized = true;
 		

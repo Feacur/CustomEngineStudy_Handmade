@@ -13,6 +13,12 @@ constexpr inline float sign(float value) {
 	return (value < 0.0f) ? -1.0f : 1.0f;
 }
 
+constexpr inline float sign0(float value) {
+	if (value < 0) { return -1.0f; }
+	if (value > 0) { return 1.0f; }
+	return 0.0f;
+}
+
 #undef min
 constexpr inline float min(float first, float second) {
 	return (first < second) ? first : second;
@@ -57,6 +63,12 @@ inline float cosine(float value) {
 
 constexpr inline int32 sign(int32 value) {
 	return (value < 0) ? -1 : 1;
+}
+
+constexpr inline int32 sign0(int32 value) {
+	if (value < 0) { return -1; }
+	if (value > 0) { return 1; }
+	return 0;
 }
 
 constexpr inline int32 min(int32 first, int32 second) {

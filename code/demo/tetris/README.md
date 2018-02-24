@@ -1,5 +1,5 @@
 # Summary
-Basic version of Tetris.
+Basic version of Tetris  
 
 ### Algorithm
 1) a random figure spawns

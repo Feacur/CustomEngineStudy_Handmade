@@ -15,7 +15,7 @@ Let's lay out steps we need:
 4) Apply lighting
 */
 
-#include "../../shared/software_renderer_simd.h"
+#include "shared/software_renderer_simd.h"
 
 GLOBAL_CONST float too_far = 1000.0f;
 struct Raytrace_Result {
@@ -168,8 +168,8 @@ inline Vector3 raytrace_scene_color(Ray3 ray, int id, int reflection_limit, int 
 }
 
 GLOBAL_CONST Vector3 axis = {cosine(pi / 3), sine(pi / 3), 0};
-GLOBAL_VARIABLE float rotation_radians = 0;
-GAME_UPDATE(game_update) {
+GLOBAL_VAR float rotation_radians = 0;
+DLL_EXPORT GAME_UPDATE(game_update) {
 	platform_data->size_target = {320, 200};
 
 	rotation_radians += 0.25f * pi * platform_data->time.delta;
@@ -178,7 +178,7 @@ GAME_UPDATE(game_update) {
 	}
 }
 
-GAME_RENDER(game_render) {
+DLL_EXPORT GAME_RENDER(game_render) {
 	auto image = platform_data->render_buffer_image;
 	clear_buffer(image, {0, 0, 0, 0});
 
@@ -210,5 +210,6 @@ GAME_RENDER(game_render) {
 	}
 }
 
-GAME_OUTPUT_SOUND(game_output_sound) {
-}
+// DLL_EXPORT GAME_OUTPUT_SOUND(game_output_sound) {
+// 	auto game_data = get_game_data(platform_data);
+// }

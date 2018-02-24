@@ -1,24 +1,33 @@
 {
-    // See https://go.microsoft.com/fwlink/?LinkId=733558
-    // for the documentation about the tasks.json format
-    "version": "0.1.0",
+    "version": "2.0.0",
     "tasks": [
         {
-            "isBuildCommand": true,
-            "taskName": "build",
+            "label": "build",
+            "type": "shell",
             "command": "${workspaceRoot}/project/build.bat",
-            "showOutput": "silent"
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": [
+                "$msCompile",
+                "$gcc"
+            ]
         },
         {
-            "isTestCommand": true,
-            "taskName": "run",
+            "label": "run",
+            "type": "shell",
             "command": "${workspaceRoot}/project/run.bat",
-            "showOutput": "never"
+            "group": {
+                "kind": "test",
+                "isDefault": true
+            }
         },
         {
-            "taskName": "wipe",
+            "label": "wipe",
+            "type": "shell",
             "command": "${workspaceRoot}/project/wipe.bat",
-            "showOutput": "never"
+            "problemMatcher": []
         }
     ]
 }

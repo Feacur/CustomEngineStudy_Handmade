@@ -9,8 +9,8 @@ typedef XINPUT_SET_STATE(xinput_set_state_type);
 XINPUT_GET_STATE(xinput_get_state_stub) { return ERROR_DEVICE_NOT_CONNECTED; }
 XINPUT_SET_STATE(xinput_set_state_stub) { return ERROR_DEVICE_NOT_CONNECTED; }
 
-GLOBAL_VARIABLE xinput_get_state_type *xinput_get_state;
-GLOBAL_VARIABLE xinput_set_state_type *xinput_set_state;
+GLOBAL_VAR xinput_get_state_type *xinput_get_state;
+GLOBAL_VAR xinput_set_state_type *xinput_set_state;
 
 #define LOAD_PROCEDURE(ROUTINE_NAME)\
 if (library) {\
@@ -29,9 +29,11 @@ void load_xinput()
 		library = LoadLibraryA(libraries[i]);
 		if (library) { break; }
 	}
-	
+
 	LOAD_PROCEDURE(xinput_get_state)
 	LOAD_PROCEDURE(xinput_set_state)
+	
+	LOG_TRACE("Initialized xinput");
 }
 
 #undef LOAD_PROCEDURE

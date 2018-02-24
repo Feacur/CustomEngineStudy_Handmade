@@ -13,6 +13,11 @@ struct Vector3i {
 // Applications: 2d position
 //
 
+constexpr inline bool operator==(Vector2i first, Vector2i second) {
+	return (first.x == second.x)
+		&& (first.y == second.y);
+}
+
 constexpr inline Vector2i operator+(Vector2i first, Vector2i second) {
 	return {first.x + second.x, first.y + second.y};
 }
@@ -69,6 +74,12 @@ constexpr inline int32 magnitude_squared(Vector2i value) {
 // Vector3i routines
 // Applications: 3d position
 //
+
+constexpr inline bool operator==(Vector3i first, Vector3i second) {
+	return (first.x == second.x)
+		&& (first.y == second.y)
+		&& (first.z == second.z);
+}
 
 constexpr inline Vector3i operator+(Vector3i first, Vector3i second) {
 	return {first.x + second.x, first.y + second.y, first.z + second.z};

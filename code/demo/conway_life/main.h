@@ -1,8 +1,8 @@
-#include "../../shared/software_renderer_simd.h"
+#include "shared/software_renderer_simd.h"
 
 #include "data.h"
 
-GAME_UPDATE(game_update) {
+DLL_EXPORT GAME_UPDATE(game_update) {
 	platform_data->size_target = {
 		(int32)(FIELD_WIDTH * CELL_SIZE_POSITION.x),
 		(int32)(FIELD_HEIGHT * CELL_SIZE_POSITION.y)
@@ -44,7 +44,7 @@ GAME_UPDATE(game_update) {
 	}
 }
 
-GAME_RENDER(game_render) {
+DLL_EXPORT GAME_RENDER(game_render) {
 	auto image = platform_data->render_buffer_image;
 	clear_buffer(image, {0, 0, 0, 0});
 
@@ -82,6 +82,6 @@ GAME_RENDER(game_render) {
 	draw_rectangle(image, pointer_position, ROTATION_VECTOR, CELL_SIZE_FIGURE, color_pointer);
 }
 
-GAME_OUTPUT_SOUND(game_output_sound) {
-	auto game_data = get_game_data(platform_data);
-}
+// DLL_EXPORT GAME_OUTPUT_SOUND(game_output_sound) {
+// 	auto game_data = get_game_data(platform_data);
+// }

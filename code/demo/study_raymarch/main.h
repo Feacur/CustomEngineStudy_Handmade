@@ -3,7 +3,7 @@
 // http://www.iquilezles.org/www/articles/rmshadows/rmshadows.htm
 // http://www.iquilezles.org/www/articles/smin/smin.htm
 
-#include "../../shared/software_renderer_simd.h"
+#include "shared/software_renderer_simd.h"
 
 #include "sdf_shapes.h"
 #include "sdf_operations.h"
@@ -11,6 +11,7 @@
 #include "scene_1.h"
 #include "scene_common_sdf.h"
 #include "scene_common_raymarch.h"
+
 inline Vector3 apply_light(Vector3 albedo, Ray3 ray, Vector3 point, Vector3 normal, float specular_power) {
 	PERSISTENT_LOCAL_CONST Vector3 ambient = {0.1f, 0.1f, 0.1f};
 	PERSISTENT_LOCAL_CONST Vector3 light = normalize(vector_init(1.0f, 2.0f, 1.0f));
@@ -61,8 +62,8 @@ inline Vector4 raymarch_color(Ray3 ray) {
 	return color;
 }
 
-GLOBAL_VARIABLE float rotation_radians = 0;
-GAME_UPDATE(game_update) {
+GLOBAL_VAR float rotation_radians = 0;
+DLL_EXPORT GAME_UPDATE(game_update) {
 	platform_data->size_target = {320, 200};
 
 	rotation_radians += 0.25f * pi * platform_data->time.delta;
@@ -70,7 +71,7 @@ GAME_UPDATE(game_update) {
 		rotation_radians -= tau;
 	}
 
-	PERSISTENT_LOCAL_VARIABLE float fraction_direction = 1;
+	PERSISTENT_LOCAL_VAR float fraction_direction = 1;
 	fraction += fraction_direction * platform_data->time.delta;
 	if (fraction < 0) {
 		fraction = 0;
@@ -82,7 +83,7 @@ GAME_UPDATE(game_update) {
 	}
 }
 
-GAME_RENDER(game_render) {
+DLL_EXPORT GAME_RENDER(game_render) {
 	auto image = platform_data->render_buffer_image;
 	clear_buffer(image, {0, 0, 0, 0});
 
@@ -112,5 +113,6 @@ GAME_RENDER(game_render) {
 	}
 }
 
-GAME_OUTPUT_SOUND(game_output_sound) {
-}
+// DLL_EXPORT GAME_OUTPUT_SOUND(game_output_sound) {
+// 	auto game_data = get_game_data(platform_data);
+// }

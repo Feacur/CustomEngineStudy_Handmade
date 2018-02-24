@@ -1,8 +1,6 @@
 @echo off
 
-set build_folder="C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build"
-
-pushd %build_folder%
+pushd "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build"
 
 rem 32-bit
 call "vcvarsall.bat" x86

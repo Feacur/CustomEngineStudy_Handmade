@@ -23,17 +23,15 @@ if (result.library) {\
 	result.ROUTINE_NAME = (ROUTINE_NAME##_type *)GetProcAddress(result.library, #ROUTINE_NAME);\
 }\
 if (!result.ROUTINE_NAME) {\
-	result.ROUTINE_NAME = ROUTINE_NAME##_stub;\
+	LOG_WARNING("Can't find \"" #ROUTINE_NAME "\" handler in the game code library");\
+	result.ROUTINE_NAME = &ROUTINE_NAME##_stub;\
 }
 
 Game_Code load_game_code(const char *file_name) {
 	Game_Code result = {};
 
 	result.library = LoadLibraryA(file_name);
-	if (result.library) {
-		result.creation_time = get_file_time(file_name);
-	}
-	
+
 	LOAD_PROCEDURE(game_update)
 	LOAD_PROCEDURE(game_render)
 	LOAD_PROCEDURE(game_output_sound)
@@ -44,12 +42,22 @@ Game_Code load_game_code(const char *file_name) {
 #undef LOAD_PROCEDURE
 
 void reload_game_code(Game_Code *code) {
-	PERSISTENT_LOCAL_CONST char *build_library_name   = "elementary_build.dll";
+	PERSISTENT_LOCAL_CONST char *build_library_name   = "elementary.dll";
 	PERSISTENT_LOCAL_CONST char *runtime_library_name = "elementary_runtime.dll";
-	FILETIME creation_time = get_file_time(build_library_name);
-	if (CompareFileTime(&creation_time, &code->creation_time) != 0) {
+	
+	WIN32_FIND_DATA find_data;
+	HANDLE file = FindFirstFileA(build_library_name, &find_data);
+	ASSERT_TRUE(file != INVALID_HANDLE_VALUE, "Can't find \"elementary.dll\"");
+
+	auto creation_time = find_data.ftLastWriteTime;
+	FindClose(file);
+
+	if (CompareFileTime(&code->creation_time, &creation_time) != 0) {
 		FreeLibrary(code->library);
 		CopyFile(build_library_name, runtime_library_name, 0);
 		*code = load_game_code(runtime_library_name);
+		code->creation_time = creation_time;
+
+		LOG_TRACE("Reloaded game code library");
 	}
 }

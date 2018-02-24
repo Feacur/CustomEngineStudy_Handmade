@@ -17,12 +17,19 @@ GLOBAL_CONST Vector4 color_background_even = {0.1f, 0.1f, 0.1f, 1};
 GLOBAL_CONST Vector4 color_field           = {0.8f, 0.8f, 0.8f, 1};
 GLOBAL_CONST Vector4 color_figure          = {0.95f, 0.95f, 0.95f, 1};
 
+GLOBAL_VAR bool input_left;
+GLOBAL_VAR bool input_right;
+GLOBAL_VAR bool input_down;
+GLOBAL_VAR bool input_up;
+
 struct Game_Data {
 	bool is_initialized;
+	// actual data
 	bool field[FIELD_WIDTH * FIELD_HEIGHT];
 	bool has_figure;
 	Vector2i figure[4];
 	Vector2i position;
+	// controls
 	float elapsed_time_side;
 	float elapsed_time_down;
 };

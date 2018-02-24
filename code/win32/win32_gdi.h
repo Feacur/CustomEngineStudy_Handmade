@@ -1,12 +1,12 @@
 struct Render_Buffer {
 	RGBA_Data  image;
 	BITMAPINFO info;
-	Vector2i size_target;
-	Vector2i size_window;
-	Vector2i size_render;
+	Vector2i   size_target;
+	Vector2i   size_window;
+	Vector2i   size_render;
 };
 
-GLOBAL_VARIABLE Render_Buffer render_buffer;
+GLOBAL_VAR Render_Buffer render_buffer;
 
 Vector2i window_to_buffer(Vector2i point) {
 	auto destination = (render_buffer.size_window - render_buffer.size_render) / 2;
@@ -62,7 +62,7 @@ void set_render_buffer_size(Vector2i size) {
 	
 	const int32 bytes_per_pixel = sizeof(uint32);
 	render_buffer.image.data = (uint32 *)allocate_memory(size.x * size.y * bytes_per_pixel);
-	ASSERT_TRUE(render_buffer.image.data != 0, "Can't allocate render buffer image memory.");
+	ASSERT_TRUE(render_buffer.image.data, "Can't allocate render buffer image memory");
 	
 	render_buffer.image.size = size;
 	
@@ -94,12 +94,17 @@ void reinit_render_buffer(HWND window, Vector2i size) {
 
 		HDC device_context = GetDC(window);
 		display_blackness(device_context);
+
+		// SetStretchBltMode(device_context, STRETCH_DELETESCANS);
+		SetStretchBltMode(device_context, STRETCH_HALFTONE);
+		
+		LOG_TRACE("Reinitialized GDI parameters");
 	}
 }
 
 void display_render_buffer(HDC device_context) {
 	auto destination = (render_buffer.size_window - render_buffer.size_render) / 2;
-	
+
 	StretchDIBits(
 		// destination
 		device_context,

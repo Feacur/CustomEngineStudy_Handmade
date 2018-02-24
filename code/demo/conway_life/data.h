@@ -11,11 +11,13 @@ GLOBAL_CONST Vector2 CELL_SIZE_FIGURE     = {8, 8};
 GLOBAL_CONST Vector4 color_background_odd  = {0.25f, 0.25f, 0.25f, 1};
 GLOBAL_CONST Vector4 color_background_even = {0.1f, 0.1f, 0.1f, 1};
 GLOBAL_CONST Vector4 color_field           = {0.8f, 0.8f, 0.8f, 1};
-GLOBAL_CONST Vector4 color_pointer         = {0.8f, 0.4f, 0.2f, 0.5f};
+GLOBAL_CONST Vector4 color_pointer         = {0.2f, 0.6f, 0.8f, 0.5f};
 
 struct Game_Data {
 	bool is_initialized;
+	// actual data
 	bool field[FIELD_WIDTH * FIELD_HEIGHT];
+	// controls
 	bool is_active;
 	float elapsed_time;
 };

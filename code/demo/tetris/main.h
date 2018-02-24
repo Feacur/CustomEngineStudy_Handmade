@@ -1,10 +1,20 @@
-#include "../../shared/software_renderer_simd.h"
-#include "../../shared/random_lehmer.h"
+#include "shared/software_renderer_simd.h"
+#include "shared/random_lehmer.h"
 
 #include <time.h> // time
 #include "data.h"
 
-GAME_UPDATE(game_update) {
+void draw_input(RGBA_Data image, int32 x, int32 y, bool state)
+{
+	auto cell_offset_background = (CELL_SIZE_POSITION - CELL_SIZE_BACKGROUND) / 2;
+
+	Vector4 color = state ? vector_init(1, 0, 0, 0.5f) : vector_init(1, 0, 0, 0.25f);
+	
+	Vector2 position = scale_multiply({(float)x, (float)y}, CELL_SIZE_POSITION) + cell_offset_background;
+	draw_rectangle(image, position, ROTATION_VECTOR, CELL_SIZE_BACKGROUND, color);
+}
+
+DLL_EXPORT GAME_UPDATE(game_update) {
 	platform_data->size_target = {
 		(int32)(FIELD_WIDTH * CELL_SIZE_POSITION.x),
 		(int32)(FIELD_HEIGHT * CELL_SIZE_POSITION.y)
@@ -27,6 +37,11 @@ GAME_UPDATE(game_update) {
 	}
 
 	// movement
+	input_left  = keyboard_get_current_state(&platform_data->input_keyboard, Keyboard_Keys::Left);
+	input_right = keyboard_get_current_state(&platform_data->input_keyboard, Keyboard_Keys::Right);
+	input_down  = keyboard_get_current_state(&platform_data->input_keyboard, Keyboard_Keys::Down);
+	input_up    = keyboard_get_current_state(&platform_data->input_keyboard, Keyboard_Keys::Up);
+	
 	if (game_data->has_figure) {
 		game_data->elapsed_time_side += platform_data->time.delta;
 		game_data->elapsed_time_down += platform_data->time.delta;
@@ -71,7 +86,7 @@ GAME_UPDATE(game_update) {
 	}
 }
 
-GAME_RENDER(game_render) {
+DLL_EXPORT GAME_RENDER(game_render) {
 	auto image = platform_data->render_buffer_image;
 	clear_buffer(image, {0, 0, 0, 0});
 
@@ -109,8 +124,14 @@ GAME_RENDER(game_render) {
 			draw_rectangle(image, position, ROTATION_VECTOR, CELL_SIZE_FIGURE, color_figure);
 		}
 	}
+	
+	// draw input
+	draw_input(image, FIELD_WIDTH - 1, FIELD_HEIGHT - 2, input_right);
+	draw_input(image, FIELD_WIDTH - 3, FIELD_HEIGHT - 2, input_left);
+	draw_input(image, FIELD_WIDTH - 2, FIELD_HEIGHT - 1, input_up);
+	draw_input(image, FIELD_WIDTH - 2, FIELD_HEIGHT - 3, input_down);
 }
 
-GAME_OUTPUT_SOUND(game_output_sound) {
-	auto game_data = get_game_data(platform_data);
-}
+// DLL_EXPORT GAME_OUTPUT_SOUND(game_output_sound) {
+// 	auto game_data = get_game_data(platform_data);
+// }

@@ -1,5 +1,6 @@
 #include "shared/code_types.h"
 #include "shared/code_visibility.h"
+#include "shared/assertion.h"
 #include "shared/memory_chunk.h"
 #include "shared/collection_array.h"
 
@@ -9,25 +10,25 @@
 
 #include "shared/platform_api.h"
 
-#include <windows.h> // obvious
+#define WIN32_LEAN_AND_MEAN
+#include <Windows.h> // obvious
 #include "win32/win32_routines.h"
 #include "win32/win32_gdi.h"
+// #include "win32/win32_dsound.h"
 #include "win32/win32_game_code_loader.h"
 #include "win32/win32_input_xinput.h"
 #include "win32/win32_input_keyboard.h"
 #include "win32/win32_input_pointer.h"
 #include "win32/win32_input_recording.h"
+#include "win32/win32_time.h"
 
-GLOBAL_VARIABLE Platform_Data platform_data;
-GLOBAL_VARIABLE Game_Code     game_code;
-GLOBAL_VARIABLE LARGE_INTEGER ticks_per_second;
-GLOBAL_VARIABLE LARGE_INTEGER frame_start_clock;
+GLOBAL_VAR Platform_Data platform_data;
+GLOBAL_VAR Game_Code     game_code;
 
 //
 // Forward declared routines
 //
 void             process_messages(HWND window);
-float            wait_for_end_of_frame(float target_delta);
 LRESULT CALLBACK window_procedure(HWND window, UINT message, WPARAM wParam, LPARAM lParam);
 void             toggle_full_screen_mode(HWND window);
 
@@ -35,22 +36,22 @@ void             toggle_full_screen_mode(HWND window);
 // Routines
 //
 
-// int main(int argc, char* argv[]) {
-// 	HINSTANCE hInstance = GetModuleHandle(0);
+int main(int argc, char* argv[]) {
+	HINSTANCE hInstance = GetModuleHandle(0);
 // 	// ShowWindow(GetConsoleWindow(), SW_HIDE);
 // 	// ShowWindow(GetConsoleWindow(), SW_SHOW);
-int CALLBACK WinMain(
-	HINSTANCE hInstance,     // Application instance handler.
-	HINSTANCE hPrevInstance, // Application previous instance handler. Always 0.
-	LPSTR     lpCmdLine,     // The command line arguments without program name.
-	int       nCmdShow       // Window visibility options.
-) {
+// int CALLBACK WinMain(
+// 	HINSTANCE hInstance,     // Application instance handler.
+// 	HINSTANCE hPrevInstance, // Application previous instance handler. Always 0.
+// 	LPSTR     lpCmdLine,     // The command line arguments without program name.
+// 	int       nCmdShow       // Window visibility options.
+// ) {
 	// AllocConsole();
 	// FreeConsole();
 	// OutputDebugStringA("Debug message.");
 	
 	//
-	// Register window class
+	// Register the window class
 	//
 	
 	WNDCLASS window_class = {};
@@ -60,12 +61,12 @@ int CALLBACK WinMain(
 	window_class.hIcon         = 0;
 	window_class.hCursor       = LoadCursor(0, IDC_ARROW);
 	window_class.lpszClassName = "Elementary window class";
-	
+
 	ATOM window_class_atom = RegisterClass(&window_class);
-	ASSERT_TRUE(window_class_atom != 0, "Can't register window class.");
+	ASSERT_TRUE(window_class_atom, "Can't register the window class");
 	
 	//
-	// Create window
+	// Create a window
 	//
 	
 	HWND window = CreateWindowEx(
@@ -77,22 +78,21 @@ int CALLBACK WinMain(
 		hInstance,
 		0
 	);
+	ASSERT_TRUE(window, "Can't create a window");
 	
-	ASSERT_TRUE(window != 0, "Can't create window.");
-	
+	HDC device_context = GetDC(window);
+
 	//
 	// Allocate memory
 	//
 	
-	HDC device_context = GetDC(window);
-	
 	platform_data.permanent_memory.size = 100 * 1024 * 1024;
 	platform_data.permanent_memory.data = (uint8 *)allocate_memory(platform_data.permanent_memory.size);
-	ASSERT_TRUE(platform_data.permanent_memory.data != 0, "Can't allocate permanent memory.");
+	ASSERT_TRUE(platform_data.permanent_memory.data, "Can't allocate permanent memory");
 	
 	platform_data.transient_memory.size = 100 * 1024 * 1024;
 	platform_data.transient_memory.data = (uint8 *)allocate_memory(platform_data.transient_memory.size);
-	ASSERT_TRUE(platform_data.transient_memory.data != 0, "Can't allocate transient memory.");
+	ASSERT_TRUE(platform_data.transient_memory.data, "Can't allocate transient memory");
 	
 	RECT default_client_rect;
 	GetClientRect(window, &default_client_rect);
@@ -100,16 +100,19 @@ int CALLBACK WinMain(
 		default_client_rect.right, default_client_rect.bottom
 	};
 	
+	LOG_TRACE("Allocated general memory");
+	
 	//
-	// Init performance counters
+	// Initialize performance counters
 	//
 	
-	QueryPerformanceFrequency(&ticks_per_second);
-	QueryPerformanceCounter(&frame_start_clock);
+	initialize_time();
 	
 	int32 monitor_hz                = (int32)GetDeviceCaps(device_context, VREFRESH);
 	platform_data.time.target_delta = 1.f / ((monitor_hz > 1) ? monitor_hz : 60);
 	platform_data.time.delta        = platform_data.time.target_delta;
+	
+	LOG_TRACE("Initialized performance counters");
 	
 	//
 	// Process input
@@ -117,14 +120,23 @@ int CALLBACK WinMain(
 	
 	load_xinput();
 	
+	LOG_TRACE("Started main cycle");
+
 	game_code = {};
 	platform_data.keep_alive = true;
 	while(platform_data.keep_alive) {
 		// init
 		reload_game_code(&game_code);
+		platform_data.read_file = &read_file;
+
 		reinit_render_buffer(window, platform_data.size_target);
 		platform_data.render_buffer_image = render_buffer.image;
-		platform_data.read_file = &read_file;
+		
+		#if DSOUND_ENABLED
+		reinit_sound_buffer(window);
+		play_sound_buffer();
+		platform_data.sound_buffer_sound = sound_buffer.sound;
+		#endif
 		
 		// input
 		process_messages(window);
@@ -144,15 +156,36 @@ int CALLBACK WinMain(
 		display_render_buffer(device_context);
 		
 		// sound
-		game_code.game_output_sound(&platform_data);
+		#if DSOUND_ENABLED
+		DWORD play_cursor;
+		DWORD write_cursor;
+		HRESULT result_GetCurrentPosition = sound_buffer.secondary_buffer->GetCurrentPosition(&play_cursor, &write_cursor);
+		if (result_GetCurrentPosition == DS_OK) {
+			int32 bytes_for_samples = sound_buffer.sound.channels * sound_buffer.bytes_per_sample;
+			int32 bytes_for_second  = bytes_for_samples * sound_buffer.sound.samples_per_second;
+			int32 bytes_for_buffer  = (int32)(bytes_for_second * sound_buffer.buffer_length_in_seconds);
+			
+			float seconds_ahead = 4 * platform_data.time.target_delta;
+			int32 bytes_ahead   = (int32)(bytes_for_second * seconds_ahead);
+			
+			DWORD end_at_byte    = (write_cursor + bytes_ahead) % bytes_for_buffer;
+			DWORD bytes_to_write = (
+				bytes_for_buffer - sound_buffer.running_sample_byte + end_at_byte
+			) % bytes_for_buffer;
 		
+			game_code.game_output_sound(&platform_data, bytes_to_write / bytes_for_samples);
+			fill_sound_buffer(bytes_to_write);
+		}
+		#endif
+
 		// idle
 		platform_data.time.delta = wait_for_end_of_frame(platform_data.time.target_delta);
 	}
 	
 	ReleaseDC(window, device_context);
 	
-	return 0;
+	LOG_TRACE("Finished running");
+	return EXIT_SUCCESS;
 }
 
 void process_messages(HWND window) {
@@ -190,38 +223,16 @@ void process_messages(HWND window) {
 	}
 }
 
-float get_clock_span_seconds(LARGE_INTEGER start, LARGE_INTEGER end) {
-	return (float)(end.QuadPart - start.QuadPart) / (float)ticks_per_second.QuadPart;
-}
-
-float wait_for_end_of_frame(float target_delta) {
-	LARGE_INTEGER current_clock;
-	QueryPerformanceCounter(&current_clock);
-	float delta = get_clock_span_seconds(frame_start_clock, current_clock);
-	if (delta < target_delta) {
-		DWORD sleep_millis = (DWORD)((target_delta - delta) * 1000.f);
-		Sleep(sleep_millis);
-		
-		while (delta < target_delta) {
-			QueryPerformanceCounter(&current_clock);
-			delta = get_clock_span_seconds(frame_start_clock, current_clock);
-		}
-	}
-	
-	frame_start_clock = current_clock;
-	return min(delta, target_delta);
-}
-
 LRESULT CALLBACK window_procedure(
 	HWND   window,
 	UINT   message,
 	WPARAM wParam,
 	LPARAM lParam
 ) {
-	PERSISTENT_LOCAL_VARIABLE bool window_is_minimized = false;
-	PERSISTENT_LOCAL_VARIABLE bool window_is_maximized = false;
-	PERSISTENT_LOCAL_VARIABLE bool window_has_focus    = false;
-	PERSISTENT_LOCAL_VARIABLE bool inner_area_focus    = false;
+	PERSISTENT_LOCAL_VAR bool window_is_minimized = false;
+	PERSISTENT_LOCAL_VAR bool window_is_maximized = false;
+	PERSISTENT_LOCAL_VAR bool window_has_focus    = false;
+	PERSISTENT_LOCAL_VAR bool inner_area_focus    = false;
 	
 	switch (message) {
 		case WM_SETFOCUS: {
@@ -332,7 +343,7 @@ LRESULT CALLBACK window_procedure(
 void toggle_full_screen_mode(HWND window) {
 	// INITIALLY BY Raymond Chen
 	// FROM http://blogs.msdn.com/b/oldnewthing/archive/2010/04/12/9994016.aspx
-	PERSISTENT_LOCAL_VARIABLE WINDOWPLACEMENT normal_window_position;
+	PERSISTENT_LOCAL_VAR WINDOWPLACEMENT normal_window_position;
 	
 	DWORD window_style = GetWindowLong(window, GWL_STYLE);
 	

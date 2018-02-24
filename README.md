@@ -1,5 +1,5 @@
 # Summary
-Study on C/C++, custom engines, games and stuff.
+Study on C/C++, custom engines, games and stuff  
 
 # How to work with this stuff
 ### See sub-projects inside "code/demo" folder
@@ -17,7 +17,7 @@ Study on C/C++, custom engines, games and stuff.
 * Definitely works with Microsoft's cl compiler
 * Occasionally I test code with MinGW-w64 gcc compiler
 
-Build scripts put stuff into "/build" folder
+Build scripts put stuff into "/build" folder  
 
 # Current state
 * Application: ".exe" platform + hot reloadable ".dll" game

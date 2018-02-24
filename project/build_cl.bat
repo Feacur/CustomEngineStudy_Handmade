@@ -1,11 +1,13 @@
 @echo off
 
 set target_name=elementary
-set build_folder="build"
-if not exist %build_folder% mkdir %build_folder%
 
+set build_folder=build
+if not exist %build_folder% mkdir %build_folder%
 pushd %build_folder%
 
+set intermediate_folder=intermediate
+if not exist %intermediate_folder% mkdir %intermediate_folder%
 
 rem -Zo: Enhance Optimized Debugging
 rem -Z7: Debug Information Format
@@ -35,10 +37,12 @@ rem -nologo: Suppress Startup Banner
 rem -Gm-: Enable Minimal Rebuild (disabled)
 rem -MT: Use Run-Time Library
 rem -GR-: Enable Run-Time Type Information (disabled)
-rem -EHa-: Exception Handling Model (disabled)
+rem -EHa-: Exception Handling Model: all (disabled)
+rem -EHsc: Exception Handling Model: C++
 rem -FC: Full Path of Source Code File in Diagnostics
 rem -LD: Creates a DLL
-rem -Fmabd: Name Map File "abc"
+rem -Fmabc: Name Map File "abc"
+rem -Foabc: Name Object File "abc"
 
 rem -DLL: Build a DLL
 rem -PDB:abc: Use Program Database "abc"
@@ -46,30 +50,42 @@ rem -opt:ref: Optimizations (eliminates functions and data that are never refere
 rem -incremental:no: Link Incrementally (disabled)
 rem -Feabc: Name EXE or DLL File "abc"
 
+set DllName=%target_name%
+set DllIntermediate=%intermediate_folder%\%DllName%_dll
+
+set ExeName=%target_name%
+set ExeIntermediate=%intermediate_folder%\%ExeName%_exe
+
 set DebugFlags=-Zo -Z7
 set OptimizeFlags=-O2 -fp:fast -fp:except-
-set Warnings=-W4 -WX -wd4201 -wd4189 -wd4100
-set CompilerFlags=-nologo -Gm- -MT -GR- -EHa- -FC %OptimizeFlags% %DebugFlags% %Warnings%
-set DllCompilerFlags=%CompilerFlags% -LD -Fm%target_name%.map
-set ExeCompilerFlags=%CompilerFlags% -Fmwin32_%target_name%.map
+set WarningFlags=-W4 -WX -wd4201 -wd4189 -wd4100
+set AdditionalFlags=-I..\code -nologo -Gm- -MT -GR- -EHa- -FC
+set CompilerFlags=-std:c++14 %AdditionalFlags% %OptimizeFlags% %DebugFlags% %WarningFlags%
+set DllCompilerIntermediate=-Fm.\%DllIntermediate% -Fo.\%DllIntermediate%
+set DllCompilerFlags=%CompilerFlags% -LD %DllCompilerIntermediate%
+set ExeCompilerIntermediate=-Fm.\%ExeIntermediate% -Fo.\%ExeIntermediate%
+set ExeCompilerFlags=%CompilerFlags%     %ExeCompilerIntermediate%
 
 set LinkerFlags=-link -opt:ref -incremental:no
-set ExportFlags= -EXPORT:game_update -EXPORT:game_render -EXPORT:game_output_sound
-set DllLinkerFlags=%LinkerFlags% -PDB:%target_name%_%random%.pdb -DLL %ExportFlags%
-set ExeLinkerFlags=%LinkerFlags% -PDB:win32_%target_name%_%random%.pdb user32.lib gdi32.lib
+set ExeLibraries=user32.lib gdi32.lib
+set DllLinkerFlags=%LinkerFlags% -PDB:.\%DllName%_dll_%random%.pdb -DLL -IMPLIB:.\%DllIntermediate%.lib
+set ExeLinkerFlags=%LinkerFlags% -PDB:.\%ExeName%_exe_%random%.pdb %ExeLibraries%
 
 rem console, use "int main(...) { }
-rem set ExeLinkerFlags=%ExeLinkerFlags% -SUBSYSTEM:CONSOLE
+set ExeLinkerFlags=%ExeLinkerFlags% -SUBSYSTEM:CONSOLE
 
 rem 32-bit, use "int CALLBACK WinMain(...) { }
-set ExeLinkerFlags=%ExeLinkerFlags% -SUBSYSTEM:WINDOWS,5.01
+rem set ExeLinkerFlags=%ExeLinkerFlags% -SUBSYSTEM:WINDOWS,5.01
 
 rem 64-bit, use "int CALLBACK WinMain(...) { }
 rem set ExeLinkerFlags=%ExeLinkerFlags% -SUBSYSTEM:WINDOWS,5.02
 
 if exist *.pdb del /q *.pdb
 
-cl -Fe%target_name%_build.dll "..\code\game.cpp" %DllCompilerFlags% %DllLinkerFlags%
-cl -Fe%target_name%.exe "..\code\win32.cpp" %ExeCompilerFlags% %ExeLinkerFlags%
+echo    - time: %time%
+cl "..\code\game.cpp"  -Fe.\%target_name% %DllCompilerFlags% %DllLinkerFlags%
+echo    - time: %time%
+cl "..\code\win32.cpp" -Fe.\%target_name% %ExeCompilerFlags% %ExeLinkerFlags%
+echo    - time: %time%
 
 popd

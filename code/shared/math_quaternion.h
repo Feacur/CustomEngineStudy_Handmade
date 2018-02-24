@@ -6,12 +6,41 @@ Can represent 3d rotation
 Math representation:
 quaternion = (w + x * i) + (y + z * i) * j
 quaternion = w + (x * i) + (y * j) + (z * k)
+quaternion = e ^ (angle * axis)
+quaternion = cos(angle) + axis * sin(angle)
 
 (i * i) = (j * j) = (k * k) = (i * j * k) = -1
 
 (i * j) = -(j * i) = k
 (j * k) = -(k * j) = i
 (k * i) = -(i * k) = j
+
+Rodrigues' rotation formula (by angle A around axis N)
+> V is parallel to axis N
+> > V' = V
+
+> V is perpendicular to axis N
+> > V' = V * cos(A) + (N x V) * sin(A)
+
+> V is arbitrary to axis N
+> > V = V_par + V_perp
+> > V' = V_par + V_perp'
+> > V' = V * cos(A) + (N x V) * sin(A) + N * (N * V) * (1 - cos(A))
+> > as you see, it's a bit cumbersome and requires trigonometric operations
+
+Quaternion rotation formula (by angle A around axis N)
+> V is parallel to axis N
+> > V' = V
+
+> V is perpendicular to axis N
+> > V' = e ^ (A * N) * V
+
+> V is arbitrary to axis N
+> > V = V_par + V_perp
+> > V' = V_par + V_perp'
+> > V' = e ^ (A * N / 2) * V * e ^ (- A * N / 2)
+> > as you see, it's concise and avoids trigonometric operations
+> > also that's why we specifically use (half_radians = euler_radians / 2) in the code
 */
 
 typedef Vector4 Quaternion;
@@ -36,10 +65,10 @@ excluding stuff negated by multiplication with zero
 
 return quaternion_multiply(
 	quaternion_multiply(
-		quaternion_from_axis({0, 0, 1}, euler_radians.z),
 		quaternion_from_axis({0, 1, 0}, euler_radians.y)
+		quaternion_from_axis({1, 0, 0}, euler_radians.x)
 	),
-	quaternion_from_axis({1, 0, 0}, euler_radians.x)
+	quaternion_from_axis({0, 0, 1}, euler_radians.z),
 );
 */
 inline Quaternion quaternion_from_radians(Vector3 euler_radians) {
@@ -49,7 +78,7 @@ inline Quaternion quaternion_from_radians(Vector3 euler_radians) {
 	Quaternion y_rotation = {0, sine(half_radians.y), 0, cosine(half_radians.y)};
 	Quaternion z_rotation = {0, 0, sine(half_radians.z), cosine(half_radians.z)};
 
-	return quaternion_multiply(quaternion_multiply(z_rotation, y_rotation), x_rotation);
+	return quaternion_multiply(quaternion_multiply(y_rotation, x_rotation), z_rotation);
 };
 
 /*

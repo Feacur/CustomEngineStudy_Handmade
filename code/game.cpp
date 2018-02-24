@@ -1,5 +1,6 @@
 #include "shared/code_types.h"
 #include "shared/code_visibility.h"
+#include "shared/assertion.h"
 #include "shared/memory_chunk.h"
 #include "shared/collection_array.h"
 
@@ -15,8 +16,10 @@
 
 #include "shared/platform_api.h"
 
+#include "demo/pacman/main.h"
+// #include "demo/sound_test/main.h"
 // #include "demo/conway_life/main.h"
-#include "demo/tetris/main.h"
+// #include "demo/tetris/main.h"
 // #include "demo/naive_silly_ecs/main.h"
 // #include "demo/study_raytrace/main.h"
 // #include "demo/study_raymarch/main.h"

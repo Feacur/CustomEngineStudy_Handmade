@@ -3,7 +3,7 @@ struct Game_Data {
 };
 
 Game_Data *get_game_data(Platform_Data *platform_data) {
-	PERSISTENT_LOCAL_VARIABLE Game_Data *game_data = 0;
+	PERSISTENT_LOCAL_VAR Game_Data *game_data = 0;
 	if (!game_data) {
 		auto memory = &platform_data->permanent_memory;
 		game_data = ALLOCATE_STRUCT(memory, Game_Data);

@@ -2,5 +2,6 @@
 
 template<typename T>
 struct Array {
-    Memory_Chunk memory_chunk;
+	T* data;
+	mem_i size, used;
 };

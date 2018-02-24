@@ -1,77 +1,58 @@
-GLOBAL_VARIABLE Input_Keyboard input_keyboard;
+GLOBAL_VAR Input_Keyboard input_keyboard;
 
 inline bool keyboard_set_key(
+	Keyboard_Keys base,
+	bool is_pressed,
 	WPARAM virtual_key_code,
 	WPARAM min_code,
-	WPARAM max_code,
-	Keyboard_Keys base,
-	bool is_pressed) {
+	WPARAM max_code
+) {
+	if (virtual_key_code < min_code) { return false; }
+	if (virtual_key_code > max_code) { return false; }
 
-	if ((virtual_key_code >= min_code) && (virtual_key_code <= max_code)) {
-		auto offset = virtual_key_code - min_code;
-		int32 index = (int32)base + offset;
-		input_keyboard.is_pressed[index] = is_pressed;
-		return true;
-	}
-
-	return false;
+	auto offset = virtual_key_code - min_code;
+	int32 index = (int32)base + offset;
+	input_keyboard.is_pressed[index] = is_pressed;
+	return true;
 }
+#define KEYBOARD_SET_RANGE(VALUE_BASE, MIN, MAX)\
+if (keyboard_set_key(Keyboard_Keys::VALUE_BASE, is_pressed, virtual_key_code, MIN, MAX))
 
-inline void keyboard_set_key(Keyboard_Keys key, bool is_pressed) {
+#define KEYBOARD_TEST_RANGE(VALUE_BASE, MIN, MAX) KEYBOARD_SET_RANGE(VALUE_BASE, MIN, MAX) { return; }
+
+inline bool keyboard_set_key(
+	Keyboard_Keys key,
+	bool is_pressed,
+	WPARAM virtual_key_code,
+	WPARAM expected_code
+) {
+	if (virtual_key_code != expected_code) { return false; }
+
 	input_keyboard.is_pressed[(int32)key] = is_pressed;
+	return true;
 }
+#define KEYBOARD_SET_VALUE(VALUE, EXPECTED)\
+keyboard_set_key(Keyboard_Keys::VALUE, is_pressed, virtual_key_code, EXPECTED)
+
+#define KEYBOARD_TEST_VALUE(VALUE, EXPECTED) if (KEYBOARD_SET_VALUE(VALUE, EXPECTED)) { return; }
 
 inline void keyboard_set_key(WPARAM virtual_key_code, bool is_pressed) {
-	// numbers
-	if (keyboard_set_key(virtual_key_code, '0', '9', Keyboard_Keys::N1, is_pressed)) {
-		return;
-	}
+	KEYBOARD_TEST_RANGE(N1,      '0', '9')
+	KEYBOARD_TEST_RANGE(F1,      VK_F1, VK_F12)
+	KEYBOARD_TEST_RANGE(A,       'A', 'Z')
 
-	// functional
-	if (keyboard_set_key(virtual_key_code, VK_F1, VK_F12, Keyboard_Keys::F1, is_pressed)) {
-		return;
-	}
+	KEYBOARD_TEST_VALUE(Left,    VK_LEFT)
+	KEYBOARD_TEST_VALUE(Right,   VK_RIGHT)
+	KEYBOARD_TEST_VALUE(Down,    VK_DOWN)
+	KEYBOARD_TEST_VALUE(Up,      VK_UP)
 	
-	// letters
-	if (keyboard_set_key(virtual_key_code, 'A', 'Z', Keyboard_Keys::A, is_pressed)) {
-		return;
-	}
-
-	// arrows
-	if (virtual_key_code == VK_LEFT) {
-		keyboard_set_key(Keyboard_Keys::Left, is_pressed);
-	}
-	else if (virtual_key_code == VK_RIGHT) {
-		keyboard_set_key(Keyboard_Keys::Right, is_pressed);
-	}
-	else if (virtual_key_code == VK_DOWN) {
-		keyboard_set_key(Keyboard_Keys::Down, is_pressed);
-	}
-	else if (virtual_key_code == VK_UP) {
-		keyboard_set_key(Keyboard_Keys::Up, is_pressed);
-	}
-	// commands
-	else if (virtual_key_code == VK_ESCAPE) {
-		keyboard_set_key(Keyboard_Keys::Escape, is_pressed);
-	}
-	else if (virtual_key_code == VK_RETURN) {
-		keyboard_set_key(Keyboard_Keys::Enter, is_pressed);
-	}
-	else if (virtual_key_code == VK_CONTROL) {
-		keyboard_set_key(Keyboard_Keys::Control, is_pressed);
-	}
-	else if (virtual_key_code == VK_SHIFT) {
-		keyboard_set_key(Keyboard_Keys::Shift, is_pressed);
-	}
-	else if (virtual_key_code == VK_MENU) {
-		keyboard_set_key(Keyboard_Keys::Alt, is_pressed);
-	}
-	else if (virtual_key_code == VK_SPACE) {
-		keyboard_set_key(Keyboard_Keys::Space, is_pressed);
-	}
-	else if (virtual_key_code == VK_TAB) {
-		keyboard_set_key(Keyboard_Keys::Tab, is_pressed);
-	}
+	KEYBOARD_TEST_VALUE(Escape,  VK_ESCAPE)
+	KEYBOARD_TEST_VALUE(Enter,   VK_RETURN)
+	KEYBOARD_TEST_VALUE(Control, VK_CONTROL)
+	KEYBOARD_TEST_VALUE(Shift,   VK_SHIFT)
+	KEYBOARD_TEST_VALUE(Alt,     VK_MENU)
+	KEYBOARD_TEST_VALUE(Space,   VK_SPACE)
+	KEYBOARD_TEST_VALUE(Tab,     VK_TAB)
 }
 
 inline void keyboard_reset_state() {

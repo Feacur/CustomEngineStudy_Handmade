@@ -4,7 +4,7 @@ enum struct Input_Recording_State : int32 {
 	Play   = 2,
 };
 
-GLOBAL_VARIABLE Input_Recording_State input_recording_state = Input_Recording_State::Stop;
+GLOBAL_VAR Input_Recording_State input_recording_state = Input_Recording_State::Stop;
 GLOBAL_CONST    char                  *state_file_name      = "StateSnapshot.blob";
 GLOBAL_CONST    char                  *input_file_name      = "InputRecord.blob";
 
@@ -27,8 +27,8 @@ void load_state(Memory_Chunk *permanent_memory) {
 }
 
 void process_input_recording(Memory_Chunk *permanent_memory, int32 input) {
-	PERSISTENT_LOCAL_VARIABLE Input_Recording_State previous_state    = Input_Recording_State::Stop;
-	PERSISTENT_LOCAL_VARIABLE HANDLE                input_file        = {};
+	PERSISTENT_LOCAL_VAR Input_Recording_State previous_state    = Input_Recording_State::Stop;
+	PERSISTENT_LOCAL_VAR HANDLE                input_file        = {};
 	PERSISTENT_LOCAL_CONST    DWORD                 input_memory_size = sizeof(int32);
 	
 	// MARK: stop

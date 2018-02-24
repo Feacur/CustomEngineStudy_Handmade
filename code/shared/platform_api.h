@@ -1,4 +1,4 @@
-#include <stdio.h> // printf
+// #include <iostream> // does not work with the flag '-EHa-', use '-EHsc'
 #include "input_keyboard.h"
 #include "input_pointer.h"
 
@@ -6,9 +6,11 @@
 // Platform to game API.
 //
 
+#define DLL_EXPORT extern "C" __declspec(dllexport)
+
 #define GAME_UPDATE(ROUTINE_NAME)       void ROUTINE_NAME(Platform_Data *platform_data)
 #define GAME_RENDER(ROUTINE_NAME)       void ROUTINE_NAME(Platform_Data *platform_data)
-#define GAME_OUTPUT_SOUND(ROUTINE_NAME) void ROUTINE_NAME(Platform_Data *platform_data)
+#define GAME_OUTPUT_SOUND(ROUTINE_NAME) void ROUTINE_NAME(Platform_Data *platform_data, int32 samples_count)
 
 struct Time {
 	float target_delta;
@@ -23,6 +25,13 @@ struct RGBA_Data {
 	uint32       *data;
 	Vector2i     size;
 	RGBA_Offsets offsets;
+};
+
+struct Sound_Data {
+	int16 *data;
+	uint32 size;
+	int32 channels;
+	int32 samples_per_second;
 };
 
 #define PLATFORM_READ_FILE(ROUTINE_NAME) Memory_Chunk ROUTINE_NAME(const char *file_name, Memory_Chunk *memory)
@@ -40,25 +49,10 @@ struct Platform_Data {
 	bool           keep_alive;
 	Vector2i       size_target;
 	RGBA_Data      render_buffer_image;
+	Sound_Data     sound_buffer_sound;
 	// platform-dependent functions
 	read_file_type *read_file;
 };
-
-//
-// Debug routines
-//
-
-inline void assert_true(bool statement_value, const char* message) {
-	if (!statement_value) {
-		printf(message);
-		*(int *)0 = 0;
-	}
-}
-
-#define DEBUG_STRINGIFY_VALUE(VALUE) #VALUE
-#define DEBUG_STRINGIFY_MACRO(MACRO) DEBUG_STRINGIFY_VALUE(MACRO)
-#define DEBUG_AT __FILE__ ":" DEBUG_STRINGIFY_MACRO(__LINE__)
-#define ASSERT_TRUE(STATEMENT, MESSAGE) assert_true(STATEMENT, MESSAGE " " DEBUG_AT)
 
 //
 // Convenience routines

@@ -1,4 +1,4 @@
-GLOBAL_VARIABLE float fraction = 0;
+GLOBAL_VAR float fraction = 0;
 inline float sdf_blob_test_1(Vector3 point) {
 	// Early out if we are too far even from the largest bounds
 	float distance = sdf_sphere(point, 10);

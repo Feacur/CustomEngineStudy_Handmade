@@ -1,4 +1,5 @@
 enum struct Keyboard_Keys : int32 {
+	None,
 	// Numbers (10)
 	N0,
 	N1,
@@ -63,9 +64,11 @@ enum struct Keyboard_Keys : int32 {
 	Alt,
 	Space,
 	Tab,
+	//
+	Last,
 };
 
-GLOBAL_CONST int32 KEYBOARD_KEYS_NUMBER = 10 + 12 + 26 + 4 + 7;
+GLOBAL_CONST int32 KEYBOARD_KEYS_NUMBER = (int32)Keyboard_Keys::Last;
 
 struct Input_Keyboard {
 	bool was_pressed[KEYBOARD_KEYS_NUMBER];
@@ -75,10 +78,14 @@ struct Input_Keyboard {
 GLOBAL_CONST int32 KEYBOARD_KEYS_BYTES = sizeof(Input_Keyboard::is_pressed);
 
 inline bool keyboard_get_previous_state(Input_Keyboard *keyboard, Keyboard_Keys key) {
+	ASSERT_TRUE(keyboard, "Keyboard is not initialized");
+	ASSERT_TRUE((int32)key < KEYBOARD_KEYS_NUMBER, "Keyboard key is out of range");
 	return keyboard->was_pressed[(int32)key];
 }
 
 inline bool keyboard_get_current_state(Input_Keyboard *keyboard, Keyboard_Keys key) {
+	ASSERT_TRUE(keyboard, "Keyboard is not initialized");
+	ASSERT_TRUE((int32)key < KEYBOARD_KEYS_NUMBER, "Keyboard key is out of range");
 	return keyboard->is_pressed[(int32)key];
 }
 

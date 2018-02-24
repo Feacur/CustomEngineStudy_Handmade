@@ -1,4 +1,4 @@
-GLOBAL_VARIABLE Input_Pointer input_pointer;
+GLOBAL_VAR Input_Pointer input_pointer;
 
 Vector2i get_pointer_window(HWND window) {
 	POINT point;
@@ -23,6 +23,8 @@ inline void pointer_update_previous_state() {
 inline void pointer_set_key(Pointer_Keys key, bool is_pressed) {
 	input_pointer.is_pressed[(int32)key] = is_pressed;
 }
+#define POINTER_SET_VALUE(VALUE, EXPECTED)\
+pointer_set_key(Pointer_Keys::VALUE, get_bit_at_index(GetKeyState(EXPECTED), 15))
 
 void process_pointer(HWND window) {
 	pointer_update_previous_state();
@@ -32,9 +34,9 @@ void process_pointer(HWND window) {
 		get_pointer_window(window)
 	);
 	
-	pointer_set_key(Pointer_Keys::Left,   get_bit_at_index(GetKeyState(VK_LBUTTON), 15));
-	pointer_set_key(Pointer_Keys::Middle, get_bit_at_index(GetKeyState(VK_MBUTTON), 15));
-	pointer_set_key(Pointer_Keys::Right,  get_bit_at_index(GetKeyState(VK_RBUTTON), 15));
+	POINTER_SET_VALUE(Left,   VK_LBUTTON);
+	POINTER_SET_VALUE(Middle, VK_MBUTTON);
+	POINTER_SET_VALUE(Right,  VK_RBUTTON);
 	
 	// ClipCursor(&RECT {ltx, lty, rbx, rby});
 	// SetCursor(HCURSOR);

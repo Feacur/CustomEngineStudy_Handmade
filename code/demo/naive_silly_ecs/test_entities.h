@@ -5,7 +5,7 @@ void create_rect_to_draw(Ecs_World *ecs_world, Vector2 position, Vector2 size, V
 }
 
 void init_test_entities(Ecs_World *ecs_world) {
-	PERSISTENT_LOCAL_VARIABLE bool initialized = false;
+	PERSISTENT_LOCAL_VAR bool initialized = false;
 	if (!initialized) {
 		initialized = true;
 

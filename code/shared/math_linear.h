@@ -21,6 +21,11 @@ struct Vector4 {
 // Applications: 2d position, 2d rotation as complex number, 2d scale, 2d direction
 //
 
+constexpr inline bool operator==(Vector2 first, Vector2 second) {
+	return (first.x == second.x)
+		&& (first.y == second.y);
+}
+
 constexpr inline Vector2 operator+(Vector2 first, Vector2 second) {
 	return {first.x + second.x, first.y + second.y};
 }
@@ -115,6 +120,12 @@ inline Vector2 refract(Vector2 incident, Vector2 normal, float factor) {
 // Vector3 routines
 // Applications: 3d position, 3d rotation as euler angles, 3d scale, 3d direction
 //
+
+constexpr inline bool operator==(Vector3 first, Vector3 second) {
+	return (first.x == second.x)
+		&& (first.y == second.y)
+		&& (first.z == second.z);
+}
 
 constexpr inline Vector3 operator+(Vector3 first, Vector3 second) {
 	return {first.x + second.x, first.y + second.y, first.z + second.z};
@@ -218,6 +229,13 @@ inline Vector3 refract(Vector3 incident, Vector3 normal, float factor) {
 // Vector4 routines
 // Applications: 3d rotation as quaternion, color
 //
+
+constexpr inline bool operator==(Vector4 first, Vector4 second) {
+	return (first.x == second.x)
+		&& (first.y == second.y)
+		&& (first.z == second.z)
+		&& (first.w == second.w);
+}
 
 constexpr inline Vector4 operator+(Vector4 first, Vector4 second) {
 	return {first.x + second.x, first.y + second.y, first.z + second.z, first.w + second.w};

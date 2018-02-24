@@ -4,9 +4,14 @@ I use Vector2i(x, y)
 Can represent 2d rotation
 
 Math representation:
-Complexi = x + y * i
+complex = x + y * i
+complex = e ^ (angle * i)
+complex = cos(angle) + i * sin(angle)
 
 i * i = -1
+
+Rotation formula (by angle A)
+> > V' = e ^ (A * i) * V
 */
 
 typedef Vector2i Complexi;
