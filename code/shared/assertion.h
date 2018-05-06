@@ -21,3 +21,13 @@ inline void assert_true(bool statement_value, const char *message, const char *l
 #define LOG_TRACE(MESSAGE) log("TRACE", MESSAGE, DEBUG_LOCATION)
 
 #define ASSERT_TRUE(STATEMENT, MESSAGE) assert_true(STATEMENT, MESSAGE, DEBUG_LOCATION)
+
+//
+//
+//
+
+// #ifdef LOGS_DISABLED
+// 	#define LOG_ERROR(MESSAGE)
+// 	#define LOG_WARNING(MESSAGE)
+// 	#define LOG_TRACE(MESSAGE)
+// #endif

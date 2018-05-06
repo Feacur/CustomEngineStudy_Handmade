@@ -76,7 +76,7 @@ inline Vector3 get_albedo_color(Raytrace_Result raytrace_result) {
 }
 
 inline Vector3 apply_light(Vector3 albedo, Raytrace_Result raytrace_result, Vector3 view_direction) {
-	auto result = scale_multiply(albedo, ambient);
+	auto result = (albedo * ambient);
 
 	auto attenuation = raytrace_attenuation(raytrace_result.point, raytrace_result.normal, light);
 	if (attenuation == 0) {
@@ -84,7 +84,7 @@ inline Vector3 apply_light(Vector3 albedo, Raytrace_Result raytrace_result, Vect
 	}
 	
 	float diffuse_lighting = max(0.0f, dot_product(raytrace_result.normal, light));
-	result = result + scale_multiply(albedo, light_color) * diffuse_lighting;
+	result = result + (albedo * light_color) * diffuse_lighting;
 	
 	float specular_power = 100;
 	if (specular_power > 0) {
@@ -162,7 +162,7 @@ inline Vector3 raytrace_scene_color(Ray3 ray, int id, int reflection_limit, int 
 	}
 
 	auto color = apply_light(albedo, raytrace_result, ray.direction);
-	color = scale_multiply(color, absorption);
+	color = (color * absorption);
 
 	return result + color;
 }

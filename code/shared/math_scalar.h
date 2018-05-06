@@ -9,11 +9,11 @@ GLOBAL_CONST float tau     = pi * 2;
 // Floating point math (32 bit)
 //
 
-constexpr inline float sign(float value) {
+constexpr inline float sign_non_zero(float value) {
 	return (value < 0.0f) ? -1.0f : 1.0f;
 }
 
-constexpr inline float sign0(float value) {
+constexpr inline float sign(float value) {
 	if (value < 0) { return -1.0f; }
 	if (value > 0) { return 1.0f; }
 	return 0.0f;
@@ -41,6 +41,10 @@ constexpr inline float interpolate(float from, float to, float fraction) {
 	return from + (to - from) * fraction;
 }
 
+constexpr inline float deg_to_rad(float value) {
+	return value * (pi / 180);
+}
+
 inline float absolute(float value) {
 	return fabsf(value);
 }
@@ -61,11 +65,11 @@ inline float cosine(float value) {
 // Integer math (32 bit)
 //
 
-constexpr inline int32 sign(int32 value) {
+constexpr inline int32 sign_non_zero(int32 value) {
 	return (value < 0) ? -1 : 1;
 }
 
-constexpr inline int32 sign0(int32 value) {
+constexpr inline int32 sign(int32 value) {
 	if (value < 0) { return -1; }
 	if (value > 0) { return 1; }
 	return 0;

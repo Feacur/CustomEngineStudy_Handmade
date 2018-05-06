@@ -6,8 +6,9 @@ inline void random_set_seed(uint32 value) {
 
 inline uint32 random_uint32() {
 	auto x = (RANDOM_SEED + 1u);
-	x = ((uint64)x * 48271u) % 0x7fffffff;
-	// x = ((uint64)x * 279470273u) % 0xfffffffb;
+	x ^= x << 13;
+	x ^= x >> 17;
+	x ^= x << 15;
 	RANDOM_SEED = x;
 	return x;
 }

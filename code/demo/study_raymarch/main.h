@@ -18,12 +18,12 @@ inline Vector3 apply_light(Vector3 albedo, Ray3 ray, Vector3 point, Vector3 norm
 	PERSISTENT_LOCAL_CONST Vector3 light_color = {1, 1, 1};
 	PERSISTENT_LOCAL_CONST float depth_limit = 1000;
 
-	auto result = scale_multiply(albedo, ambient);
+	auto result = (albedo * ambient);
 	
     float attenuation = raymarch_attenuation(point, normal, light, 16, depth_limit);
 
 	float diffuse_lighting = max(0.0f, dot_product(normal, light)) * attenuation;
-	result = result + scale_multiply(albedo, light_color) * diffuse_lighting;
+	result = result + (albedo * light_color) * diffuse_lighting;
 	
 	if (specular_power > 0) {
 		auto reflection = reflect(ray.direction, normal, 2.0f);

@@ -58,7 +58,8 @@ DLL_EXPORT GAME_RENDER(game_render) {
 		for (int32 x = 0; x < FIELD_WIDTH; ++x) {
 			bool isOdd = (x + y) % 2;
 			Vector4 color = isOdd ? color_background_odd : color_background_even;
-			Vector2 position = scale_multiply({(float)x, (float)y}, CELL_SIZE_POSITION) + cell_offset_background;
+			Vector2 xy = {(float)x, (float)y};
+			Vector2 position = (xy * CELL_SIZE_POSITION) + cell_offset_background;
 			draw_rectangle(image, position, ROTATION_VECTOR, CELL_SIZE_BACKGROUND, color);
 		}
 	}
@@ -68,7 +69,8 @@ DLL_EXPORT GAME_RENDER(game_render) {
 		for (int32 x = 0; x < FIELD_WIDTH; ++x) {
 			bool is_filled = game_data->field[y * FIELD_WIDTH + x];
 			if (is_filled) {
-				Vector2 position = scale_multiply({(float)x, (float)y}, CELL_SIZE_POSITION) + cell_offset_figure;
+				Vector2 xy = {(float)x, (float)y};
+				Vector2 position = (xy * CELL_SIZE_POSITION) + cell_offset_figure;
 				draw_rectangle(image, position, ROTATION_VECTOR, CELL_SIZE_FIGURE, color_field);
 			}
 		}

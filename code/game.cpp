@@ -16,7 +16,8 @@
 
 #include "shared/platform_api.h"
 
-#include "demo/pacman/main.h"
+#include "demo/pathtracing/main.h"
+// #include "demo/pacman/main.h"
 // #include "demo/sound_test/main.h"
 // #include "demo/conway_life/main.h"
 // #include "demo/tetris/main.h"

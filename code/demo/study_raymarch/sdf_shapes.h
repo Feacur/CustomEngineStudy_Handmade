@@ -1,5 +1,5 @@
 /*
-These functions calculate the shortest distance to shape's surface from a given point.
+These functions calculate the shortest distance to the surface of the shapes from a given point.
 */
 
 inline float sdf_sphere(Vector3 point, float radius) {

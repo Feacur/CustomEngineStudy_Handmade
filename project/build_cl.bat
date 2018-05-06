@@ -9,10 +9,23 @@ pushd %build_folder%
 set intermediate_folder=intermediate
 if not exist %intermediate_folder% mkdir %intermediate_folder%
 
-rem -Zo: Enhance Optimized Debugging
-rem -Z7: Debug Information Format
+set intermediate=%intermediate_folder%\%target_name%
 
-rem -Od: Disable (Debug)
+if exist *.pdb del /q *.pdb
+
+rem //
+rem // >> COMPILER
+rem //
+set compiler=-I..\code
+
+set compiler=%compiler% -std:c++14
+set compiler=%compiler% -Fe.\%target_name%
+
+rem //
+rem // >> COMPILER: optimization
+rem //
+set optimization=-O2
+
 rem -Ob: Inline Function Expansion
 rem -Og: Global Optimizations
 rem -Oy: Frame-Pointer Omission
@@ -22,70 +35,145 @@ rem -Oi: Generate Intrinsic Functions
 rem -GF: Eliminate Duplicate Strings
 rem -Gs: Control Stack Checking Calls
 rem -Gy: Enable Function-Level Linking
+
+rem -Od: Disable (Debug)
 rem -O1: Minimize Size: -Og -Os -Oy -Ob2 -Gs -GF -Gy
 rem -O2: Maximize Speed: -Og -Oi -Ot -Oy -Ob2 -Gs -GF -Gy
-rem -fp:fast: Specify Floating-Point Behavior (fast)
-rem -fp:except-: Specify Floating-Point Behavior (disabled exceptions)
 
-rem -W4: Warning Level
-rem -WX: Treat Linker Warnings as Errors: 
-rem -wd4201: nameless struct/union
-rem -wd4189: local variable is initialized but not referenced
-rem -wd4100: unreferenced formal parameter
+rem Specify Floating-Point Behavior (fast)
+set optimization=%optimization% -fp:fast
+rem Specify Floating-Point Behavior (disabled exceptions)
+set optimization=%optimization% -fp:except-
 
-rem -nologo: Suppress Startup Banner
-rem -Gm-: Enable Minimal Rebuild (disabled)
-rem -MT: Use Run-Time Library
-rem -GR-: Enable Run-Time Type Information (disabled)
-rem -EHa-: Exception Handling Model: all (disabled)
-rem -EHsc: Exception Handling Model: C++
-rem -FC: Full Path of Source Code File in Diagnostics
-rem -LD: Creates a DLL
-rem -Fmabc: Name Map File "abc"
-rem -Foabc: Name Object File "abc"
+set compiler=%compiler% %optimization%
 
-rem -DLL: Build a DLL
-rem -PDB:abc: Use Program Database "abc"
-rem -opt:ref: Optimizations (eliminates functions and data that are never referenced)
-rem -incremental:no: Link Incrementally (disabled)
-rem -Feabc: Name EXE or DLL File "abc"
+rem //
+rem // >> COMPILER: debug, slow compile times
+rem //
+set debug=
 
-set DllName=%target_name%
-set DllIntermediate=%intermediate_folder%\%DllName%_dll
+rem -Z7: Produces an .obj file containing full symbolic debugging information
+rem -Zi: Produces a program database
+rem -ZI: PDB, edit and continue
+rem -Zf (Faster PDB generation)
 
-set ExeName=%target_name%
-set ExeIntermediate=%intermediate_folder%\%ExeName%_exe
+rem Enhance Optimized Debugging
+set debug=%debug% -Zo
 
-set DebugFlags=-Zo -Z7
-set OptimizeFlags=-O2 -fp:fast -fp:except-
-set WarningFlags=-W4 -WX -wd4201 -wd4189 -wd4100
-set AdditionalFlags=-I..\code -nologo -Gm- -MT -GR- -EHa- -FC
-set CompilerFlags=-std:c++14 %AdditionalFlags% %OptimizeFlags% %DebugFlags% %WarningFlags%
-set DllCompilerIntermediate=-Fm.\%DllIntermediate% -Fo.\%DllIntermediate%
-set DllCompilerFlags=%CompilerFlags% -LD %DllCompilerIntermediate%
-set ExeCompilerIntermediate=-Fm.\%ExeIntermediate% -Fo.\%ExeIntermediate%
-set ExeCompilerFlags=%CompilerFlags%     %ExeCompilerIntermediate%
+rem Debug Information Format
+set debug=%debug% -Zi -Zf
 
-set LinkerFlags=-link -opt:ref -incremental:no
-set ExeLibraries=user32.lib gdi32.lib
-set DllLinkerFlags=%LinkerFlags% -PDB:.\%DllName%_dll_%random%.pdb -DLL -IMPLIB:.\%DllIntermediate%.lib
-set ExeLinkerFlags=%LinkerFlags% -PDB:.\%ExeName%_exe_%random%.pdb %ExeLibraries%
+rem set compiler=%compiler% %debug%
+
+rem //
+rem // >> COMPILER: warnings
+rem //
+set warnings=-W4
+
+rem wd####: Suppresses the compiler warning
+
+rem Treat Linker Warnings as Errors
+set warnings=%warnings% -WX
+rem nameless struct/union (suppress)
+set warnings=%warnings% -wd4201
+rem local variable is initialized but not referenced (suppress)
+set warnings=%warnings% -wd4189
+rem unreferenced formal parameter (suppress)
+set warnings=%warnings% -wd4100
+
+set compiler=%compiler% %warnings%
+
+rem //
+rem // >> COMPILER: build options
+rem //
+set build_options=-nologo
+
+rem Enable Minimal Rebuild (disabled)
+set build_options=%build_options% -Gm-
+rem Use Run-Time Library
+set build_options=%build_options% -MT
+rem Enable Run-Time Type Information (disabled)
+set build_options=%build_options% -GR-
+rem Exception Handling Model: all (disabled)
+set build_options=%build_options% -EHa-
+rem Full Path of Source Code File in Diagnostics
+set build_options=%build_options% -FC
+rem Build with Multiple Processes
+set build_options=%build_options% -MP
+
+set compiler=%compiler% %build_options%
+
+rem //
+rem // >> COMPILER: intermediate
+rem //
+
+set dll_obj=-Fo.\%intermediate%_dll
+set dll_map=-Fm.\%intermediate%_dll
+
+set exe_obj=-Fo.\%intermediate%_exe
+set exe_map=-Fm.\%intermediate%_exe
+
+rem //
+rem // >> COMPILER: diagnostics
+rem //
+set diagnostics=
+
+rem build throughput
+set diagnostics=%diagnostics% -Bt
+rem code generation summary
+set diagnostics=%diagnostics% -d2cgsummary
+
+rem set compiler=%compiler% %diagnostics%
+
+rem //
+rem // >> LINKER
+rem //
+set linker=-link
+
+rem Optimizations (eliminates functions and data that are never referenced)
+set linker=%linker% -opt:ref
+rem Link Incrementally (disabled)
+set linker=%linker% -incremental:no
+
+rem //
+rem // >> LINKER: libs
+rem //
+set libs=user32.lib gdi32.lib
+
+rem //
+rem // >> LINKER: intermediate
+rem //
+
+set dll_pdb=-PDB:.\%target_name%_dll_%random%.pdb
+set dll_imp=-IMPLIB:.\%intermediate%_dll.lib
+
+set exe_pdb=-PDB:.\%target_name%_exe_%random%.pdb
+
+rem //
+rem // >> LINKER: subsystem
+rem //
 
 rem console, use "int main(...) { }
-set ExeLinkerFlags=%ExeLinkerFlags% -SUBSYSTEM:CONSOLE
+set subsystem=-SUBSYSTEM:CONSOLE
 
 rem 32-bit, use "int CALLBACK WinMain(...) { }
-rem set ExeLinkerFlags=%ExeLinkerFlags% -SUBSYSTEM:WINDOWS,5.01
+rem set subsystem=-SUBSYSTEM:WINDOWS,5.01
 
 rem 64-bit, use "int CALLBACK WinMain(...) { }
-rem set ExeLinkerFlags=%ExeLinkerFlags% -SUBSYSTEM:WINDOWS,5.02
+rem set subsystem=-SUBSYSTEM:WINDOWS,5.02
 
-if exist *.pdb del /q *.pdb
+rem //
+rem // >> CL
+rem //
+rem -LD: Creates a DLL
+rem -DLL: Build a DLL
+set dll_compiler=%compiler% %dll_obj%
+set exe_compiler=%compiler% %exe_obj%
 
-echo    - time: %time%
-cl "..\code\game.cpp"  -Fe.\%target_name% %DllCompilerFlags% %DllLinkerFlags%
-echo    - time: %time%
-cl "..\code\win32.cpp" -Fe.\%target_name% %ExeCompilerFlags% %ExeLinkerFlags%
-echo    - time: %time%
+echo ---- DLL  ---- %time%
+cl "..\code\game.cpp"  %dll_compiler% -LD %linker% -DLL %dll_imp%
+echo ---- EXE  ---- %time%
+cl "..\code\win32.cpp" %exe_compiler%     %linker% %libs% %subsystem%
+echo ---- DONE ---- %time%
 
 popd

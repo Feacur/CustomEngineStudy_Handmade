@@ -26,6 +26,10 @@ constexpr inline bool operator==(Vector2 first, Vector2 second) {
 		&& (first.y == second.y);
 }
 
+constexpr inline bool operator!=(Vector2 first, Vector2 second) {
+	return !(first == second);
+}
+
 constexpr inline Vector2 operator+(Vector2 first, Vector2 second) {
 	return {first.x + second.x, first.y + second.y};
 }
@@ -42,26 +46,20 @@ constexpr inline Vector2 operator*(Vector2 first, float second) {
 	return {first.x * second, first.y * second};
 }
 
+constexpr inline Vector2 operator*(Vector2 first, Vector2 second) {
+	return {first.x * second.x, first.y * second.y};
+}
+
 constexpr inline Vector2 operator/(Vector2 first, float second) {
 	return {first.x / second, first.y / second};
 }
 
+constexpr inline Vector2 operator/(Vector2 first, Vector2 second) {
+	return {first.x / second.x, first.y / second.y};
+}
+
 constexpr inline Vector2 vector_init(float x, float y) {
 	return {x, y};
-}
-
-constexpr inline Vector2 scale_multiply(Vector2 first, Vector2 second) {
-	return {
-		first.x * second.x,
-		first.y * second.y
-	};
-}
-
-constexpr inline Vector2 scale_divide(Vector2 first, Vector2 second) {
-	return {
-		first.x / second.x,
-		first.y / second.y
-	};
 }
 
 constexpr inline Vector2 interpolate(Vector2 from, Vector2 to, float fraction) {
@@ -104,16 +102,15 @@ constexpr inline Vector2 reflect(Vector2 incident, Vector2 normal, float factor)
 }
 
 inline Vector2 refract(Vector2 incident, Vector2 normal, float factor) {
-	float incident_cosine          = dot_product(incident, normal);
-	float incident_sine_squared    = 1 - incident_cosine * incident_cosine;
-	float refracted_sine_squared   = incident_sine_squared * factor * factor;
-	// if (refracted_sine_squared > 1) {
-	// 	// total internal reflection
-	// 	return {0, 0};
-	// }
-	float refracted_cosine         = square_root(1 - refracted_sine_squared);
-	float normal_factor            = incident_cosine * factor + refracted_cosine;
-	return incident * factor - normal * normal_factor;
+	float incident_cosine = dot_product(incident, normal);
+	float incident_sine_squared = 1 - incident_cosine * incident_cosine;
+	float refracted_sine_squared = factor * factor * incident_sine_squared;
+	if (refracted_sine_squared < 1) {
+		float refracted_cosine = square_root(1 - refracted_sine_squared);
+		float normal_factor = incident_cosine * factor + refracted_cosine;
+		return incident * factor - normal * normal_factor;
+	}
+	return {};
 }
 
 //
@@ -125,6 +122,10 @@ constexpr inline bool operator==(Vector3 first, Vector3 second) {
 	return (first.x == second.x)
 		&& (first.y == second.y)
 		&& (first.z == second.z);
+}
+
+constexpr inline bool operator!=(Vector3 first, Vector3 second) {
+	return !(first == second);
 }
 
 constexpr inline Vector3 operator+(Vector3 first, Vector3 second) {
@@ -143,28 +144,20 @@ constexpr inline Vector3 operator*(Vector3 first, float second) {
 	return {first.x * second, first.y * second, first.z * second};
 }
 
+constexpr inline Vector3 operator*(Vector3 first, Vector3 second) {
+	return {first.x * second.x, first.y * second.y, first.z * second.z };
+}
+
 constexpr inline Vector3 operator/(Vector3 first, float second) {
 	return {first.x / second, first.y / second, first.z / second};
 }
 
+constexpr inline Vector3 operator/(Vector3 first, Vector3 second) {
+	return {first.x / second.x, first.y / second.y, first.z / second.z};
+}
+
 constexpr inline Vector3 vector_init(float x, float y, float z) {
 	return {x, y, z};
-}
-
-constexpr inline Vector3 scale_multiply(Vector3 first, Vector3 second) {
-	return {
-		first.x * second.x,
-		first.y * second.y,
-		first.z * second.z
-	};
-}
-
-constexpr inline Vector3 scale_divide(Vector3 first, Vector3 second) {
-	return {
-		first.x / second.x,
-		first.y / second.y,
-		first.z / second.z
-	};
 }
 
 constexpr inline Vector3 interpolate(Vector3 from, Vector3 to, float fraction) {
@@ -213,16 +206,15 @@ constexpr inline Vector3 reflect(Vector3 incident, Vector3 normal, float factor)
 }
 
 inline Vector3 refract(Vector3 incident, Vector3 normal, float factor) {
-	float incident_cosine          = dot_product(incident, normal);
-	float incident_sine_squared    = 1 - incident_cosine * incident_cosine;
-	float refracted_sine_squared   = incident_sine_squared * factor * factor;
-	// if (refracted_sine_squared > 1) {
-	// 	// total internal reflection
-	// 	return {0, 0, 0};
-	// }
-	float refracted_cosine         = square_root(1 - refracted_sine_squared);
-	float normal_factor            = incident_cosine * factor + refracted_cosine;
-	return incident * factor - normal * normal_factor;
+	float incident_cosine = dot_product(incident, normal);
+	float incident_sine_squared = 1 - incident_cosine * incident_cosine;
+	float refracted_sine_squared = factor * factor * incident_sine_squared;
+	if (refracted_sine_squared < 1) {
+		float refracted_cosine = square_root(1 - refracted_sine_squared);
+		float normal_factor = incident_cosine * factor + refracted_cosine;
+		return incident * factor - normal * normal_factor;
+	}
+	return {};
 }
 
 //
@@ -235,6 +227,10 @@ constexpr inline bool operator==(Vector4 first, Vector4 second) {
 		&& (first.y == second.y)
 		&& (first.z == second.z)
 		&& (first.w == second.w);
+}
+
+constexpr inline bool operator!=(Vector4 first, Vector4 second) {
+	return !(first == second);
 }
 
 constexpr inline Vector4 operator+(Vector4 first, Vector4 second) {
@@ -253,30 +249,20 @@ constexpr inline Vector4 operator*(Vector4 first, float second) {
 	return {first.x * second, first.y * second, first.z * second, first.w * second};
 }
 
+constexpr inline Vector4 operator*(Vector4 first, Vector4 second) {
+	return {first.x * second.x, first.y * second.y, first.z * second.z, first.w * second.w};
+}
+
 constexpr inline Vector4 operator/(Vector4 first, float second) {
 	return {first.x / second, first.y / second, first.z / second, first.w / second};
 }
 
+constexpr inline Vector4 operator/(Vector4 first, Vector4 second) {
+	return {first.x / second.x, first.y / second.y, first.z / second.z, first.w / second.w};
+}
+
 constexpr inline Vector4 vector_init(float x, float y, float z, float w) {
 	return {x, y, z, w};
-}
-
-constexpr inline Vector4 scale_multiply(Vector4 first, Vector4 second) {
-	return {
-		first.x * second.x,
-		first.y * second.y,
-		first.z * second.z,
-		first.w * second.w
-	};
-}
-
-constexpr inline Vector4 scale_divide(Vector4 first, Vector4 second) {
-	return {
-		first.x / second.x,
-		first.y / second.y,
-		first.z / second.z,
-		first.w / second.w
-	};
 }
 
 constexpr inline Vector4 interpolate(Vector4 from, Vector4 to, float fraction) {
@@ -319,14 +305,13 @@ constexpr inline Vector4 reflect(Vector4 incident, Vector4 normal, float factor)
 }
 
 inline Vector4 refract(Vector4 incident, Vector4 normal, float factor) {
-	float incident_cosine          = dot_product(incident, normal);
-	float incident_sine_squared    = 1 - incident_cosine * incident_cosine;
-	float refracted_sine_squared   = incident_sine_squared * factor * factor;
-	// if (refracted_sine_squared > 1) {
-	// 	// total internal reflection
-	// 	return {0, 0, 0, 0};
-	// }
-	float refracted_cosine         = square_root(1 - refracted_sine_squared);
-	float normal_factor            = incident_cosine * factor + refracted_cosine;
-	return incident * factor - normal * normal_factor;
+	float incident_cosine = dot_product(incident, normal);
+	float incident_sine_squared = 1 - incident_cosine * incident_cosine;
+	float refracted_sine_squared = factor * factor * incident_sine_squared;
+	if (refracted_sine_squared < 1) {
+		float refracted_cosine = square_root(1 - refracted_sine_squared);
+		float normal_factor = incident_cosine * factor + refracted_cosine;
+		return incident * factor - normal * normal_factor;
+	}
+	return {};
 }

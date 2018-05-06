@@ -70,10 +70,16 @@ GLOBAL_CONST field_prefab field1 = {(bool *)field1_data, {20, 11}};
 //
 // funcitons
 //
-void reset_field(Game_Data *game_data);
-void randomize_character(Game_Data *game_data, int32 character_index);
 void reinit_game_data();
-void move(Game_Data *game_data, int32 character_index, Vector2i move);
+
+namespace field {
+	void reset(Game_Data *game_data);
+}
+
+namespace character {
+	void init(Game_Data *game_data, int32 character_index);
+	void randomize_position(Game_Data *game_data, int32 character_index);
+}
 
 Game_Data *get_game_data() {
 	// the "header" of platform data is game data
@@ -88,110 +94,129 @@ void reinit_game_data() {
 	reset_memory_chunk(permanent_memory);
 	auto game_data = ALLOCATE_STRUCT(permanent_memory, Game_Data);
 	
-	reset_field(game_data);
+	field::reset(game_data);
 	for (int32 i = 0; i < CHARACTERS_COUNT; ++i) {
-		randomize_character(game_data, i);
+		character::init(game_data, i);
+		character::randomize_position(game_data, i);
 	}
 
 	game_data->is_initialized = true;
 }
 
-void reset_field(Game_Data *game_data) {
-	ASSERT_TRUE(permanent_memory, "Global var \"permanent_memory\" wasn't initialized");
-	
-	auto prefab = field1;
-	auto cells_count = prefab.size.x * prefab.size.y;
+namespace field {
+	void reset(Game_Data *game_data) {
+		ASSERT_TRUE(permanent_memory, "Global var \"permanent_memory\" wasn't initialized");
+		
+		auto prefab = field1;
+		auto cells_count = prefab.size.x * prefab.size.y;
 
-	game_data->field = ALLOCATE_ARRAY(permanent_memory, bool, cells_count);
-	memcpy(game_data->field, prefab.data, cells_count);
-	
-	game_data->size  = prefab.size;
-}
+		game_data->field = ALLOCATE_ARRAY(permanent_memory, bool, cells_count);
+		memcpy(game_data->field, prefab.data, cells_count);
+		
+		game_data->size  = prefab.size;
+	}
 
-void randomize_character(Game_Data *game_data, int32 character_index) {
-	auto character = &game_data->characters[character_index];
-	character->type = character_index;
-	auto cells_count = game_data->size.x * game_data->size.y;
-	auto offset = random_in_range(0, cells_count);
-	for (int32 i = 0; i < cells_count; ++i) {
-		auto offset_i = (i + offset) % cells_count;
-		if (game_data->field[offset_i] == false) {
-			character->position = {offset_i % game_data->size.x, offset_i / game_data->size.x};
-			break;
-		}
+	bool get_cell(Game_Data *game_data, Vector2i position) {
+		auto index = position.y * game_data->size.x + position.x;
+		return game_data->field[index];
 	}
 }
-
-void move_to(Game_Data *game_data, int32 character_index, Vector2i target) {
-	auto direction = target - game_data->characters[character_index].position;
-	direction.x = sign0(direction.x);
-	direction.y = sign0(direction.y);
-	move(game_data, character_index, direction);
+	
+bool test_step(Game_Data *game_data, Vector2i position, Vector2i move) {
+	return (move != vector_init(0, 0))
+		&& (field::get_cell(game_data, position + move) == false);
 }
 
-void update_ai(Game_Data *game_data) {
-	auto character0 = game_data->characters[0];
-	for (int32 i = 1; i < CHARACTERS_COUNT; ++i) {
-		if (game_data->characters[i].position == character0.position) {
-			randomize_character(game_data, i);
-		}
-		else {
-			move_to(game_data, i, character0.position);
+namespace character {
+	void init(Game_Data *game_data, int32 character_index) {
+		auto character = &game_data->characters[character_index];
+		character->type = character_index;
+	}
+
+	void randomize_position(Game_Data *game_data, int32 character_index) {
+		auto character = &game_data->characters[character_index];
+		auto cells_count = game_data->size.x * game_data->size.y;
+		auto offset = random_in_range(0, cells_count);
+		for (int32 i = 0; i < cells_count; ++i) {
+			auto offset_i = (i + offset) % cells_count;
+			if (game_data->field[offset_i] == false) {
+				character->position = {offset_i % game_data->size.x, offset_i / game_data->size.x};
+				break;
+			}
 		}
 	}
-}
 
-bool get_cell(Game_Data *game_data, Vector2i position) {
-	auto index = position.y * game_data->size.x + position.x;
-	return game_data->field[index];
-}
+	bool step(Game_Data *game_data, int32 character_index, Vector2i move, Vector2i remainder) {
+		auto character = &game_data->characters[character_index];
+		auto position = character->position;
 
-bool try_move(Game_Data *game_data, int32 character_index, Vector2i move) {
-	if (move == vector_init(0, 0)) { return false; }
-	auto character = &game_data->characters[character_index];
-	if (get_cell(game_data, character->position + move) == false) {
-		character->position = character->position + move;
+		if (!test_step(game_data, position, move)) { return false; }
+		
+		character->position = position + move;
+		character->move_remainder = remainder;
 		return true;
 	}
-	return false;
-}
 
-void move(Game_Data *game_data, int32 character_index, Vector2i move) {
-	if (move == vector_init(0, 0)) { return; }
+	void step_adjacent(Game_Data *game_data, int32 character_index, Vector2i move) {
+		auto character = &game_data->characters[character_index];
 
-	auto character = &game_data->characters[character_index];
+		if (move == vector_init(0, 0)) {
+			character->move_remainder = {0, 0};
+			return;
+		}
 
-	Vector2i move_x = { move.x, 0 };
-	Vector2i move_y = { 0, move.y };
+		Vector2i move_x = { move.x, 0 };
+		Vector2i move_y = { 0, move.y };
 
-	// prefer last turn's direction
-	if ((move_x == character->move_remainder) && try_move(game_data, character_index, move_x)) {
-		character->move_remainder = move_y;
-	}
-	else if ((move_y == character->move_remainder) && try_move(game_data, character_index, move_y)) {
-		character->move_remainder = move_x;
-	}
-	// move x or y as normally
-	else if (try_move(game_data, character_index, move_x)) {
-		character->move_remainder = move_y;
-	}
-	else if (try_move(game_data, character_index, move_y)) {
-		character->move_remainder = move_x;
-	}
-	// reset last turn's direction
-	else {
+		// prefer last turn's direction
+		auto remainder = character->move_remainder;
+		if ((move_x == remainder) && step(game_data, character_index, move_x, move_y)) { return; }
+		if ((move_y == remainder) && step(game_data, character_index, move_y, move_x)) { return; }
+
+		// move x or y as normally
+		if (step(game_data, character_index, move_x, move_y)) { return; }
+		if (step(game_data, character_index, move_y, move_x)) { return; }
+
+		// reset last turn's direction
 		character->move_remainder = {0, 0};
 	}
 }
 
-inline bool input_current(Keyboard_Keys key) {
-	return keyboard_get_current_state(input_keyboard, key);
+namespace ai {
+	void move_to(Game_Data *game_data, int32 character_index, Vector2i target) {
+		auto character = &game_data->characters[character_index];
+		auto direction = target - character->position;
+		Vector2i move = {sign(direction.x), sign(direction.y)};
+		character::step_adjacent(game_data, character_index, move);
+	}
+
+	void update_character(Game_Data *game_data, int32 character_index) {
+		auto character0 = game_data->characters[0];
+		auto character = &game_data->characters[character_index];
+		
+		move_to(game_data, character_index, character0.position);
+		if (character->position == character0.position) {
+			character::randomize_position(game_data, character_index);
+		}
+	}
+	
+	void update(Game_Data *game_data) {
+		for (int32 i = 1; i < CHARACTERS_COUNT; ++i) {
+			update_character(game_data, i);
+		}
+	}
 }
 
-inline bool input_pressed(Keyboard_Keys key) {
-	return keyboard_get_transition_pressed(input_keyboard, key);
-}
+namespace input {
+	inline bool get_current(Keyboard_Keys key) {
+		return keyboard_get_current_state(input_keyboard, key);
+	}
 
-inline bool input_released(Keyboard_Keys key) {
-	return keyboard_get_transition_released(input_keyboard, key);
+	inline bool get_pressed(Keyboard_Keys key) {
+		return keyboard_get_transition_pressed(input_keyboard, key);
+	}
+
+	inline bool get_released(Keyboard_Keys key) {
+		return keyboard_get_transition_released(input_keyboard, key);
+	}
 }

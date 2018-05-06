@@ -1,5 +1,6 @@
 #include "shared/software_renderer_simd.h"
-#include "shared/random_lehmer.h"
+// #include "shared/random_lehmer.h"
+#include "shared/random_xorshift32.h"
 
 #include "data.h"
 
@@ -9,7 +10,8 @@ void draw_input(RGBA_Data image, int32 x, int32 y, bool state)
 
 	Vector4 color = state ? vector_init(1, 0, 0, 0.5f) : vector_init(1, 0, 0, 0.25f);
 	
-	Vector2 position = scale_multiply({(float)x, (float)y}, CELL_SIZE_POSITION) + cell_offset_background;
+	Vector2 xy = {(float)x, (float)y};
+	Vector2 position = (xy * CELL_SIZE_POSITION) + cell_offset_background;
 	draw_rectangle(image, position, ROTATION_VECTOR, CELL_SIZE_BACKGROUND, color);
 }
 
@@ -30,16 +32,18 @@ DLL_EXPORT GAME_UPDATE(game_update) {
 	};
 	
 	// process input
-	input_left  = input_current(Keyboard_Keys::Left);
-	input_right = input_current(Keyboard_Keys::Right);
-	input_down  = input_current(Keyboard_Keys::Down);
-	input_up    = input_current(Keyboard_Keys::Up);
+	input_left  = input::get_current(Keyboard_Keys::Left);
+	input_right = input::get_current(Keyboard_Keys::Right);
+	input_down  = input::get_current(Keyboard_Keys::Down);
+	input_up    = input::get_current(Keyboard_Keys::Up);
+
+	Vector2i move = { input_right - input_left, input_up - input_down };
 
 	game_data->elapsed_time += platform_data->time.delta;
 	if (game_data->elapsed_time > TIME_STEP) {
 		game_data->elapsed_time = 0;
-		move(game_data, 0, { input_right - input_left, input_up - input_down });
-		update_ai(game_data);
+		character::step_adjacent(game_data, 0, move);
+		ai::update(game_data);
 	}
 }
 
@@ -61,7 +65,8 @@ DLL_EXPORT GAME_RENDER(game_render) {
 		for (int32 x = 0; x < FIELD_WIDTH; ++x) {
 			bool isOdd = (x + y) % 2;
 			Vector4 color = isOdd ? color_background_odd : color_background_even;
-			Vector2 position = scale_multiply({(float)x, (float)y}, CELL_SIZE_POSITION) + cell_offset_background;
+			Vector2 xy = {(float)x, (float)y};
+			Vector2 position = (xy * CELL_SIZE_POSITION) + cell_offset_background;
 			draw_rectangle(image, position, ROTATION_VECTOR, CELL_SIZE_BACKGROUND, color);
 		}
 	}
@@ -71,7 +76,8 @@ DLL_EXPORT GAME_RENDER(game_render) {
 		for (int32 x = 0; x < FIELD_WIDTH; ++x) {
 			bool is_filled = game_data->field[y * FIELD_WIDTH + x];
 			if (is_filled) {
-				Vector2 position = scale_multiply({(float)x, (float)y}, CELL_SIZE_POSITION) + cell_offset_wall;
+				Vector2 xy = {(float)x, (float)y};
+				Vector2 position = (xy * CELL_SIZE_POSITION) + cell_offset_wall;
 				draw_rectangle(image, position, ROTATION_VECTOR, CELL_SIZE_WALL, color_field);
 			}
 		}
@@ -80,10 +86,9 @@ DLL_EXPORT GAME_RENDER(game_render) {
 	// draw characters
 	for (int32 i = 0; i < CHARACTERS_COUNT; ++i) {
 		auto character = game_data->characters[i];
-		auto x = (float)character.position.x;
-		auto y = (float)character.position.y;
 		auto color_character = color_characters[i];
-		Vector2 position = scale_multiply({x, y}, CELL_SIZE_POSITION) + cell_offset_character;
+		Vector2 xy = {(float)character.position.x, (float)character.position.y};
+		Vector2 position = (xy * CELL_SIZE_POSITION) + cell_offset_character;
 		draw_rectangle(image, position, ROTATION_VECTOR, CELL_SIZE_CHARACTER, color_character);
 	}
 

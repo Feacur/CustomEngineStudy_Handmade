@@ -20,6 +20,10 @@ constexpr inline Vector2 max(Vector2 first, Vector2 second) {
 	};
 }
 
+constexpr inline Vector2 clamp(Vector2 value, Vector2 low, Vector2 high) {
+	return min(max(value, low), high);
+}
+
 constexpr inline float min(Vector2 value) {
 	return min(value.x, value.y);
 }
@@ -53,6 +57,10 @@ constexpr inline Vector3 max(Vector3 first, Vector3 second) {
 		max(first.y, second.y),
 		max(first.z, second.z)
 	};
+}
+
+constexpr inline Vector3 clamp(Vector3 value, Vector3 low, Vector3 high) {
+	return min(max(value, low), high);
 }
 
 constexpr inline float min(Vector3 value) {
@@ -91,6 +99,10 @@ constexpr inline Vector4 max(Vector4 first, Vector4 second) {
 		max(first.z, second.z),
 		max(first.w, second.w)
 	};
+}
+
+constexpr inline Vector4 clamp(Vector4 value, Vector4 low, Vector4 high) {
+	return min(max(value, low), high);
 }
 
 constexpr inline float min(Vector4 value) {

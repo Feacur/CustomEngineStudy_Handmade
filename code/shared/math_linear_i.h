@@ -18,6 +18,10 @@ constexpr inline bool operator==(Vector2i first, Vector2i second) {
 		&& (first.y == second.y);
 }
 
+constexpr inline bool operator!=(Vector2i first, Vector2i second) {
+	return !(first == second);
+}
+
 constexpr inline Vector2i operator+(Vector2i first, Vector2i second) {
 	return {first.x + second.x, first.y + second.y};
 }
@@ -34,26 +38,20 @@ constexpr inline Vector2i operator*(Vector2i first, int32 second) {
 	return {first.x * second, first.y * second};
 }
 
+constexpr inline Vector2i operator*(Vector2i first, Vector2i second) {
+	return {first.x * second.x, first.y * second.y};
+}
+
 constexpr inline Vector2i operator/(Vector2i first, int32 second) {
 	return {first.x / second, first.y / second};
 }
 
+constexpr inline Vector2i operator/(Vector2i first, Vector2i second) {
+	return {first.x / second.x, first.y / second.y};
+}
+
 constexpr inline Vector2i vector_init(int32 x, int32 y) {
 	return {x, y};
-}
-
-constexpr inline Vector2i scale_multiply(Vector2i first, Vector2i second) {
-	return {
-		first.x * second.x,
-		first.y * second.y
-	};
-}
-
-constexpr inline Vector2i scale_divide(Vector2i first, Vector2i second) {
-	return {
-		first.x / second.x,
-		first.y / second.y
-	};
 }
 
 constexpr inline int32 dot_product(Vector2i first, Vector2i second) {
@@ -81,6 +79,10 @@ constexpr inline bool operator==(Vector3i first, Vector3i second) {
 		&& (first.z == second.z);
 }
 
+constexpr inline bool operator!=(Vector3i first, Vector3i second) {
+	return !(first == second);
+}
+
 constexpr inline Vector3i operator+(Vector3i first, Vector3i second) {
 	return {first.x + second.x, first.y + second.y, first.z + second.z};
 }
@@ -97,28 +99,20 @@ constexpr inline Vector3i operator*(Vector3i first, int32 second) {
 	return {first.x * second, first.y * second, first.z * second};
 }
 
+constexpr inline Vector3i operator*(Vector3i first, Vector3i second) {
+	return {first.x * second.x, first.y * second.y, first.z * second.z};
+}
+
 constexpr inline Vector3i operator/(Vector3i first, int32 second) {
 	return {first.x / second, first.y / second, first.z / second};
 }
 
+constexpr inline Vector3i operator/(Vector3i first, Vector3i second) {
+	return {first.x / second.x, first.y / second.y, first.z / second.z};
+}
+
 constexpr inline Vector3i vector_init(int32 x, int32 y, int32 z) {
 	return {x, y, z};
-}
-
-constexpr inline Vector3i scale_multiply(Vector3i first, Vector3i second) {
-	return {
-		first.x * second.x,
-		first.y * second.y,
-		first.z * second.z
-	};
-}
-
-constexpr inline Vector3i scale_divide(Vector3i first, Vector3i second) {
-	return {
-		first.x / second.x,
-		first.y / second.y,
-		first.z / second.z
-	};
 }
 
 constexpr inline int32 dot_product(Vector3i first, Vector3i second) {
