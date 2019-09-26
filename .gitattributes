@@ -1,0 +1,7 @@
+*     text=auto
+
+*.h   text diff=cpp
+*.c   text diff=cpp
+*.cpp text diff=cpp
+
+*.bat text eol=crlf

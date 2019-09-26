@@ -2,35 +2,77 @@
 Study on C/C++, custom engines, games and stuff  
 
 # How to work with this stuff
-### See sub-projects inside "code/demo" folder
-* "code/demo/conway_life"
-* "code/demo/tetris"
-* "code/demo/naive_silly_ecs"
-* "code/demo/study_raymarch"
-* "code/demo/study_raytrace"
+### __See sub-projects inside folder__
+```
+> code/__ workspace __
+VSCode workspace, because it doesn't support nested projects
+```
 
-### My IDE of choice is Visual Studio Code
-* See ".vscode/tasks.json" for some useful commands
+```
+> code/demo_game
+Game layer, coupled with platform_windows layer
 
-### See "/project" folder for build scripts
-* I'm using unity build right now ("code/game.cpp", "code/win32.cpp")
-* Definitely works with Microsoft's cl compiler
-* Occasionally I test code with MinGW-w64 gcc compiler
+pathtracing ..... reading Peter Sherley's book
+tetris .......... basic mechanics
+conway_life ..... basic mechanics
+pacman .......... WIP basic mechanics
+sound_test ...... toying with DSound
+study_raymarch .. basic raymarching and SDF
+study_raytrace .. basic raytracing
+entity_system .   toying with ECS
+```
 
-Build scripts put stuff into "/build" folder  
+```
+> code/platform_windows
+Windows platform layer, coupled with demo_game layer
+```
+
+```
+> code/demo_console
+Standalone console application test bed, C++
+
+list ............ testing intrusive linked list
+```
+
+```
+> code/demo_c
+Standalone console application test bed, C
+
+test ............ testing C code
+```
+
+```
+> code/demo_glsl
+VSCode glsl extensions test bed
+```
+
+### __Project setup and build__
+Initial  
+* Call git submodule update --init --recursive
+* Call git submodule update -f
+
+VSCode  
+* See "**/.vscode/tasks.json" for build commands
+* See "**/.vscode/launch.json" for run and debug commands
+
+Premake  
+* Call GenerateProjects.bat
+* Use your IDE of preference
+
+> Target output into "/bin" folder  
+> Intermediate output into "/bin-int" folder  
 
 # Current state
-* Application: ".exe" platform + hot reloadable ".dll" game
-* Rendering 2d: plain C and SIMD
-* Custom math library
-* Simple BMP reader
-* Keyboard and pointer input
-* Somewhat const correct in places
+* app 1: ".exe" platform + hot reloadable ".dll" game module
+* app 2: ".exe" only console, written in C++
+* app 3: ".exe" only console, written in C
+* abstract data structures and algorithms
 
 # To do
-* Memory management
-* Assets management
+* read the pathtracing book, implement
+* finish pacman
+* data with handles instead of pointers
+* memory management
+* assets management
 * "Entity Component System" framework
-* Physics, 2d for starters
-* Auto array
-* Finilize input recording
+* physics, 2d for starters

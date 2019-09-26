@@ -1,0 +1,15 @@
+{
+    "configurations": [
+        {
+            "name": "Custom",
+
+            "cStandard": "${default}",
+            "cppStandard": "${default}",
+            "compilerPath": "${default}",
+            "intelliSenseMode": "${default}",
+
+            "includePath": ["${default}"]
+        }
+    ],
+    "version": 4
+}

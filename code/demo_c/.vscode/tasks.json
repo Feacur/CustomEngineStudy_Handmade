@@ -1,0 +1,62 @@
+{
+    "version": "2.0.0",
+	"presentation": {
+		"reveal": "silent",
+		"panel": "shared",
+		"showReuseMessage": false,
+		"clear": true
+	},
+    "tasks": [
+        {
+            "label": "Build Shipping",
+            "group": "build",
+            "command": "${workspaceFolder}\\..\\..\\project_build.bat",
+            "args": [
+                "${workspaceFolder}\\main.c",
+                "${workspaceFolderBasename}",
+                "ConsoleApp", "x64",
+                "Shipping",
+                "-DPLATFORM_WINDOWS",
+            ],
+            "problemMatcher": "$msCompile",
+            "type": "shell",
+            "options": {
+                "cwd": "..\\.."
+            },
+        },
+        {
+            "label": "Build Development",
+            "group": "build",
+            "command": "${workspaceFolder}\\..\\..\\project_build.bat",
+            "args": [
+                "${workspaceFolder}\\main.c",
+                "${workspaceFolderBasename}",
+                "ConsoleApp", "x64",
+                "Development",
+                "-DPLATFORM_WINDOWS",
+            ],
+            "problemMatcher": "$msCompile",
+            "type": "shell",
+            "options": {
+                "cwd": "..\\.."
+            },
+        },
+        {
+            "label": "Build Debug",
+            "group": "build",
+            "command": "${workspaceFolder}\\..\\..\\project_build.bat",
+            "args": [
+                "${workspaceFolder}\\main.c",
+                "${workspaceFolderBasename}",
+                "ConsoleApp", "x64",
+                "Debug",
+                "-DPLATFORM_WINDOWS",
+            ],
+            "problemMatcher": "$msCompile",
+            "type": "shell",
+            "options": {
+                "cwd": "..\\.."
+            },
+        },
+    ]
+}

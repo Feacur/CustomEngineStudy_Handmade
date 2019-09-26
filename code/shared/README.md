@@ -1,9 +1,8 @@
-# Assets
-# Code (types, visibility)
-# Collection array
-# Image bitmap
-# Input (keyboard, pointer)
-# Math (bezier, complex, linear, linear extension, quaternaion, ray, scalar)
-# Platform API
-# Random (C stdlib, Lehmer)
-# Renderer (plain, SIMD)
+```
+code_*.h .............. coding conveniences
+collection_*.h ........ collection data structures
+math_*.h .............. math libary (vector, quaternion, scalar, complex, etc.)
+random_*.h ............ randomization
+image_*.h ............. image structures and code
+software_renderer_*.h . basic renderering functions
+```
