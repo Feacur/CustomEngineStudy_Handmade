@@ -20,10 +20,10 @@ static Platform_Data platform_data;
 
 extern "C" { // @Note: use discrete GPU by default
 	// http://developer.download.nvidia.com/devzone/devcenter/gamegraphics/files/OptimusRenderingPolicies.pdf
-	__declspec(dllexport) DWORD NvOptimusEnablement = 1;
+	API_DLL_EXPORT DWORD NvOptimusEnablement = 1;
 	// https://community.amd.com/thread/223376
 	// https://gpuopen.com/amdpowerxpressrequesthighperformance/
-	__declspec(dllexport) DWORD AmdPowerXpressRequestHighPerformance = 1;
+	API_DLL_EXPORT DWORD AmdPowerXpressRequestHighPerformance = 1;
 }
 
 //
@@ -52,7 +52,7 @@ int CALLBACK WinMain(
 	win_main_show_console();
 	
 	char exe_path[MAX_PATH];
-	GetModuleFileNameA(NULL, exe_path, MAX_PATH);
+	GetModuleFileName(NULL, exe_path, MAX_PATH);
 
 	return platform_windows_main(hInstance, exe_path);
 }
@@ -86,7 +86,7 @@ void display_render_buffer_any(HDC device_context) {
 }
 
 int platform_windows_main(HINSTANCE hInstance, cstring exe_path) {
-	normalize_directory(exe_path);
+	// normalize_directory(exe_path);
 
 	SetConsoleOutputCP(1252);
 	// code page 1250: Windows Central Europe
@@ -354,7 +354,7 @@ LRESULT CALLBACK window_procedure(
 	switch (message) {
 		// case WM_CHAR: {
 		// 	// requires WM_KEYDOWN translated and dispatched
-		// 	wprintf(L"%c\n", (wchar_t)wParam);
+		// 	printf("%C\n", (wchar_t)wParam);
 		// } break;
 		
 		case WM_INPUT: {

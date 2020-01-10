@@ -21,11 +21,20 @@ IS_ENUM_META(Raw_Input_Device_Usage)
 // RIDEV_NOLEGACY:     prevents mouse and keyboard from generating legacy messages
 // RIDEV_CAPTUREMOUSE: the mouse button click does not activate the other window
 
-RAWINPUTDEVICE raw_input_device(HWND window, USHORT usage, DWORD flags);
+constexpr inline RAWINPUTDEVICE raw_input_device(HWND window, USHORT usage, DWORD flags) {
+	RAWINPUTDEVICE device = {};
+	device.usUsagePage = 0x01;
+	device.usUsage     = usage;
+	device.dwFlags     = flags;
+	device.hwndTarget  = window;
+	return device;
+}
+
 void register_raw_input(HWND window) {
+	using U = meta::underlying_type<Raw_Input_Device_Usage>::type;
 	RAWINPUTDEVICE devices[] = {
-		raw_input_device(window, (USHORT)Raw_Input_Device_Usage::keyboard, 0),
-		raw_input_device(window, (USHORT)Raw_Input_Device_Usage::mouse, 0),
+		raw_input_device(window, (U)Raw_Input_Device_Usage::keyboard, 0),
+		raw_input_device(window, (U)Raw_Input_Device_Usage::mouse, 0),
 	};
 	RegisterRawInputDevices(devices, C_ARRAY_LENGTH(devices), sizeof(RAWINPUTDEVICE));
 }
@@ -56,13 +65,4 @@ void process_raw_input(HWND window, LPARAM lParam) {
 			process_raw_input_callback(window, raw->data.hid);
 			break;
 	}
-}
-
-inline RAWINPUTDEVICE raw_input_device(HWND window, USHORT usage, DWORD flags) {
-	RAWINPUTDEVICE device;
-	device.usUsagePage = 0x01;
-	device.usUsage     = usage;
-	device.dwFlags     = flags;
-	device.hwndTarget  = window;
-	return device;
 }

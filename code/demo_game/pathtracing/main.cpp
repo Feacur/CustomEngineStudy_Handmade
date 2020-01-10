@@ -1,7 +1,7 @@
 #include "demo_game/main_common.h"
 #include "demo_game/platform_globals.h"
 
-#include "shared/shapes.h"
+#include "shared/math_shapes.h"
 
 #include "data.h"
 #include "code.h"
@@ -15,6 +15,8 @@
 #include "routines_shape.h"
 #include "routines_scene.h"
 #include "routines_draw.h"
+
+// https://raytracing.github.io/
 
 API_C API_DLL GAME_UPDATE(game_update) {
 	globals::cache(platform_data);

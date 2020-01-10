@@ -9,6 +9,13 @@
 #include "code.h"
 #include "code_debug.h"
 
+// https://gameinternals.com/understanding-pac-man-ghost-behavior
+// https://www.gamasutra.com/view/feature/3938/the_pacman_dossier.php?print=1
+// https://youtu.be/ataGotQ7ir8
+// https://youtu.be/G8W7EQKBgcg
+// https://youtu.be/9bbhJi0NBkk
+// https://youtu.be/w5kFmdkrIuY
+
 API_C API_DLL GAME_UPDATE(game_update) {
 	globals::cache(platform_data);
 
@@ -54,13 +61,13 @@ API_C API_DLL GAME_RENDER(game_render) {
 				draw_rectangle_over(globals::render_buffer, position, tile_size, tile_color);
 			}
 
-			if (flag_has(TILE_FLAGS[tile_type], Tile_Type::Dot)) {
+			if (bits_are_set(TILE_FLAGS[tile_type], Tile_Type::Dot)) {
 				Vector2i xy = base_xy + dot_offset;
 				Vector2 position = {(float)xy.x, (float)xy.y};
 				draw_rectangle_over(globals::render_buffer, position, dot_size, DOT_COLOR);
 			}
 
-			if (flag_has(TILE_FLAGS[tile_type], Tile_Type::Energy)) {
+			if (bits_are_set(TILE_FLAGS[tile_type], Tile_Type::Energy)) {
 				Vector2i xy = base_xy + energy_offset;
 				Vector2 position = {(float)xy.x, (float)xy.y};
 				draw_rectangle_over(globals::render_buffer, position, energy_size, ENERGY_COLOR);

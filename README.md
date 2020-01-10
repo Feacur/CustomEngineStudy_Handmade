@@ -4,7 +4,7 @@ Study on C/C++, custom engines, games and stuff
 # How to work with this stuff
 ### __See sub-projects inside folder__
 ```
-> code/__ workspace __
+> __ workspace __
 VSCode workspace, because it doesn't support nested projects
 ```
 
@@ -19,7 +19,7 @@ pacman .......... WIP basic mechanics
 sound_test ...... toying with DSound
 study_raymarch .. basic raymarching and SDF
 study_raytrace .. basic raytracing
-entity_system .   toying with ECS
+entity_system ... toying with ECS
 ```
 
 ```
@@ -41,15 +41,27 @@ Standalone console application test bed, C
 test ............ testing C code
 ```
 
-```
-> code/demo_glsl
-VSCode glsl extensions test bed
-```
-
 ### __Project setup and build__
 Initial  
 * Call git submodule update --init --recursive
 * Call git submodule update -f
+* See some notes below regarding SSH keys
+
+In case of using SSH key passphrases  
+```
+# on Windows you might want to modify your .gitconfig with
+# (at least during git submodules initialization)
+[credential]
+	helper = manager
+[url "https://github.com/"]
+	insteadOf = git@github.com:
+
+# also see
+# - https://help.github.com/en/github/authenticating-to-github/working-with-ssh-key-passphrases
+
+# hm, I didn't figure out how to use them with submodules differently
+# - https://support.microsoft.com/en-us/help/4026814/windows-accessing-credential-manager
+```
 
 VSCode  
 * See "**/.vscode/tasks.json" for build commands
