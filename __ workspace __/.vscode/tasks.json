@@ -1,19 +1,19 @@
 {
-	"version": "2.0.0",
-	"presentation": {
-		"reveal": "silent",
-		"panel": "shared",
-		"showReuseMessage": false,
-		"clear": true
-	},
+    "version": "2.0.0",
+    "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "showReuseMessage": false,
+        "clear": true
+    },
     "tasks": [
         {
             "label": "Build Shipping",
             "group": "build",
-            "command": "${workspaceFolder}\\..\\solution_build.bat",
+            "command": "${workspaceFolder}/../solution_build.bat",
             "args": [
-                "x64",
-                "Shipping",
+                "CustomEngineStudy.sln",
+                "x64", "x64", "Shipping",
             ],
             "problemMatcher": "$msCompile",
             "type": "shell",
@@ -24,10 +24,10 @@
         {
             "label": "Build Development",
             "group": "build",
-            "command": "${workspaceFolder}\\..\\solution_build.bat",
+            "command": "${workspaceFolder}/../solution_build.bat",
             "args": [
-                "x64",
-                "Development",
+                "CustomEngineStudy.sln",
+                "x64", "x64", "Development",
             ],
             "problemMatcher": "$msCompile",
             "type": "shell",
@@ -38,10 +38,10 @@
         {
             "label": "Build Debug",
             "group": "build",
-            "command": "${workspaceFolder}\\..\\solution_build.bat",
+            "command": "${workspaceFolder}/../solution_build.bat",
             "args": [
-                "x64",
-                "Debug",
+                "CustomEngineStudy.sln",
+                "x64", "x64", "Debug",
             ],
             "problemMatcher": "$msCompile",
             "type": "shell",

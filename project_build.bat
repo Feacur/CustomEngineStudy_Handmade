@@ -1,9 +1,15 @@
 @echo off
 
-chcp 1252
-rem code page 1250: Windows Central Europe
-rem code page 1251: Windows Cyrillic
-rem code page 1252: Windows Western
+rem https://docs.microsoft.com/en-us/cpp/build/building-on-the-command-line?view=vs-2019
+rem https://docs.microsoft.com/en-us/cpp/build/reference/compiling-a-c-cpp-program?view=vs-2019
+rem https://docs.microsoft.com/en-us/cpp/build/reference/linking?view=vs-2019
+rem https://docs.microsoft.com/en-us/cpp/build/reference/lib-reference?view=vs-2019
+
+chcp 65001
+rem code page 65001: Unicode (UTF-8)
+rem code page 1250:  ANSI Central European; Central European (Windows)
+rem code page 1251:  ANSI Cyrillic; Cyrillic (Windows)
+rem code page 1252:  ANSI Latin 1; Western European (Windows)
 
 set VSLANG=1033
 rem msbuild locale 1033: English
@@ -12,10 +18,11 @@ rem read batch file arguments
 set compilation_unit=%1
 set target_name=%2
 set kind=%3
-set architecture=%4
-set configuration=%5
-set defines=%6
-set libraries=%7
+set architecture_compiler=%4
+set architecture_target=%5
+set configuration=%6
+set defines=%7
+set libraries=%8
 
 if [%compilation_unit%] == [] (
 	echo provide compilation unit [*.cpp]
@@ -28,16 +35,23 @@ if [%target_name%] == [] (
 )
 
 if [%kind%] == [] (
-	echo provide kind [ConsoleApp, SharedLib, WindowedApp]
+	echo provide kind [StaticLib, SharedLib, ConsoleApp, WindowedApp]
 	exit /b 0
 )
 
-if [%architecture%] == [] (
-	set architecture="x64"
+if [%architecture_compiler%] == [] (
+	echo provide architecture_compiler [x64, x86]
+	exit /b 0
+)
+
+if [%architecture_target%] == [] (
+	echo provide architecture_target [x64, x86, arm, arm64]
+	exit /b 0
 )
 
 if [%configuration%] == [] (
-	set configuration="Shipping"
+	echo provide kind [Debug, Development, Shipping]
+	exit /b 0
 )
 
 if [%defines%] == [] (
@@ -52,7 +66,8 @@ rem clean batch file arguments
 set compilation_unit=%compilation_unit:"=%
 set target_name=%target_name:"=%
 set kind=%kind:"=%
-set architecture=%architecture:"=%
+set architecture_compiler=%architecture_compiler:"=%
+set architecture_target=%architecture_target:"=%
 set configuration=%configuration:"=%
 set defines=%defines:"=%
 set libraries=%libraries:"=%
@@ -60,8 +75,9 @@ set libraries=%libraries:"=%
 rem declare paths
 set rootdir=%~dp0.
 set sourcedir=.\code
-set target_location=.\bin\custom\%target_name%
-set intermediate_location=.\bin-int\custom\%target_name%
+set outputdir=custom\%target_name%
+set target_location=.\bin\%outputdir%
+set intermediate_location=.\bin-int\%outputdir%
 
 rem //
 rem // >> COMPILER
@@ -69,8 +85,6 @@ rem //
 set compiler=-std:c++17
 set compiler=%compiler% -I%sourcedir%
 
-rem Name EXE File
-set compiler=%compiler% -Fe"%target_location%\%target_name%"
 rem Program Database File Name
 set compiler=%compiler% -Fd"%intermediate_location%\\"
 rem Object File Name
@@ -79,19 +93,27 @@ rem Name Mapfile
 rem set compiler=%compiler% -Fm"%intermediate_location%\\"
 
 set defines=%defines% -D _HAS_EXCEPTIONS=0
+rem @Note: might want to enable this only locally
+set defines=%defines% -D _CRT_SECURE_NO_WARNINGS
 rem set defines=%defines% -D _UNICODE -D UNICODE
 rem set defines=%defines% -D _MBCS
 
-if %kind% == WindowedApp (
-	set defines=%defines% -D WIN_MAIN
+if %configuration% == Shipping (
+	set defines=%defines% -D CUSTOM_SHIPPING
+) else if %configuration% == Development (
+	set defines=%defines% -D CUSTOM_DEVELOPMENT
+) else if %configuration% == Debug (
+	set defines=%defines% -D CUSTOM_DEBUG
 )
 
-if %configuration% == Shipping (
-	set defines=%defines% -D SHIPPING
-) else if %configuration% == Development (
-	set defines=%defines% -D DEVELOPMENT
-) else if %configuration% == Debug (
-	set defines=%defines% -D DEBUG
+if %kind% == StaticLib (
+	set defines=%defines% -D CUSTOM_STATIC_LIBRARY
+) else if %kind% == SharedLib (
+	set defines=%defines% -D CUSTOM_SHARED_LIBRARY -D CUSTOM_SYMBOLS_SHARE
+) else if %kind% == ConsoleApp (
+	set defines=%defines% -D CUSTOM_APPLICATION
+) else if %kind% == WindowedApp (
+	set defines=%defines% -D CUSTOM_APPLICATION
 )
 
 set compiler=%compiler% %defines%
@@ -101,9 +123,9 @@ rem // >> COMPILER: optimization
 rem //
 set optimization=
 if %configuration% == Shipping (
-	set optimization=%optimization% -Ox -Oi -GF -Gy -GL
+	set optimization=%optimization% -Ox -Oi -GF -Gy
 ) else if %configuration% == Development (
-	set optimization=%optimization% -Ox -Oi -GF -Gy -GL
+	set optimization=%optimization% -Ox -Oi -GF -Gy
 ) else if %configuration% == Debug (
 	set optimization=%optimization% -Od -Gs
 )
@@ -224,22 +246,6 @@ rem -Tc:  Specify Source File Type (C locally, per file)
 set compiler=%compiler% %build_options%
 
 rem //
-rem // >> COMPILER: intermediate
-rem //
-
-rem -LD: Creates a DLL
-rem -LDd: Creates a debug DLL. Defines _MT and _DEBUG.
-if %kind% == SharedLib (
-	if %configuration% == Shipping (
-		set compiler=%compiler% -LD
-	) else if %configuration% == Development (
-		set compiler=%compiler% -LD
-	) else if %configuration% == Debug (
-		set compiler=%compiler% -LDd
-	)
-)
-
-rem //
 rem // >> COMPILER: diagnostics
 rem //
 set diags=
@@ -263,26 +269,24 @@ set compiler=%compiler% %diags%
 rem //
 rem // >> LINKER
 rem //
-set linker=-link -NOLOGO
+set linker=-NOLOGO
+set linker=%linker% "%intermediate_location%\*.obj"
+set linker=%linker% %libraries%
+if %kind% == SharedLib (
+	set linker=%linker% -OUT:"%target_location%\%target_name%.dll" -DLL
+) else if %kind% == ConsoleApp (
+	set linker=%linker% -OUT:"%target_location%\%target_name%.exe"
+) else if %kind% == WindowedApp (
+	set linker=%linker% -OUT:"%target_location%\%target_name%.exe"
+)
+set linker=%linker% -WX
+set linker=%linker% -MACHINE:%architecture_target:x=X%
 
-rem -DLL: Build a DLL
-rem if %kind% == SharedLib (
-rem 	set linker=%linker% -DLL
-rem )
-
-rem set linker=%linker% -MACHINE:%architecture:x=X%
 rem set linker=%linker% -MANIFEST:EMBED
 rem set linker=%linker% -MANIFESTUAC:"level='asInvoker' uiAccess='false'"
 rem set linker=%linker% -TLBID:1
 rem set linker=%linker% -DYNAMICBASE
 rem set linker=%linker% -NXCOMPAT
-
-rem Output File Name
-rem if %kind% == SharedLib (
-rem 	set linker=%linker% -OUT:"%target_location%\%target_name%.dll"
-rem ) else (
-rem 	set linker=%linker% -OUT:"%target_location%\%target_name%.exe"
-rem )
 
 rem Use Program Database
 set linker=%linker% -PDB:"%target_location%\%target_name%.pdb"
@@ -313,40 +317,50 @@ rem -TLBID:####:     Specify Resource ID for TypeLib
 rem -DYNAMICBASE:    Use address space layout randomization
 rem -NXCOMPAT:       Compatible with Data Execution Prevention
 rem -IMPLIB:####:    Name Import Library
-
-rem //
-rem // >> LINKER: libs
-rem //
-
-set linker=%linker% %libraries%
+rem -VERBOSE:        Print progress messages
+rem                  > (CLR|ICF|INCR|LIB|REF|SAFESEH|UNUSEDDELAYLOAD|UNUSEDLIBS)
 
 rem //
 rem // >> LINKER: subsystem
 rem //
 
-if %kind% == ConsoleApp (
+if %kind% == StaticLib (
+	rem blank
+) else if %kind% == SharedLib (
+	rem use int __stdcall DllMain(...) { }
+	rem set linker=%linker% -ENTRY:_DllMainCRTStartup
+) else if %kind% == ConsoleApp (
 	rem use int main(...) { }
-	if %architecture% == x64 (
+	rem set linker=%linker% -ENTRY:mainCRTStartup
+	rem set linker=%linker% -ENTRY:wmainCRTStartu
+	if %architecture_target% == x64 (
 		set linker=%linker% -SUBSYSTEM:CONSOLE,5.02
-	) else if %architecture% == x86 (
+	) else if %architecture_target% == x86 (
 		set linker=%linker% -SUBSYSTEM:CONSOLE,5.01
 	) else (
-		rem set linker=%linker% -SUBSYSTEM:CONSOLE
-		echo unexpected architecture %architecture%
-		exit /b 0
+		set linker=%linker% -SUBSYSTEM:CONSOLE
 	)
 ) else if %kind% == WindowedApp (
-	rem use int CALLBACK WinMain(...) { }
-	if %architecture% == x64 (
+	rem use int __stdcall WinMain(...) { }
+	rem set linker=%linker% -ENTRY:WinMainCRTStartup
+	rem set linker=%linker% -ENTRY:wWinMainCRTStartup
+	if %architecture_target% == x64 (
 		set linker=%linker% -SUBSYSTEM:WINDOWS,5.02
-	) else if %architecture% == x86 (
+	) else if %architecture_target% == x86 (
 		set linker=%linker% -SUBSYSTEM:WINDOWS,5.01
 	) else (
-		rem set linker=%linker% -SUBSYSTEM:WINDOWS
-		echo unexpected architecture %architecture%
-		exit /b 0
+		set linker=%linker% -SUBSYSTEM:WINDOWS
 	)
 )
+
+rem //
+rem // >> LIBRARY MANAGER
+rem //
+set lib_manager=-NOLOGO
+set lib_manager=%lib_manager% "%intermediate_location%\*.obj"
+set lib_manager=%lib_manager% -OUT:"%target_location%\%target_name%.lib"
+set lib_manager=%lib_manager% -WX
+set lib_manager=%lib_manager% -MACHINE:%architecture_target:x=X%
 
 rem //
 rem // >> CL
@@ -364,7 +378,11 @@ rem popd
 
 rem pushd "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build"
 pushd "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Auxiliary\Build"
-call "vcvarsall.bat" %architecture%
+if %architecture_compiler% == %architecture_target% (
+	call "vcvarsall.bat" %architecture_compiler%
+) else (
+	call "vcvarsall.bat" %architecture_compiler%_%architecture_target%
+)
 popd
 
 rem -showIncludes: List Include Files
@@ -372,11 +390,23 @@ rem -E: Preprocess to stdout (with "> %target_name%.cpp" at the end)
 
 echo ClCompile:
 echo %compiler%
-echo Link:
-echo %linker%
+if %kind% == StaticLib (
+	echo Lib:
+	echo %lib_manager%
+) else (
+	echo Link:
+	echo %linker%
+)
 
 echo ---- BUILD ---- %time%
-cl "%compilation_unit%" %compiler% %linker%
+cl "%compilation_unit%" -c %compiler%
+if %kind% == StaticLib (
+	lib %lib_manager%
+) else (
+	link %linker%
+)
+rem set compiler=%compiler% -Fe"%target_location%\%target_name%"
+rem cl "%compilation_unit%" %compiler% -link %linker%
 echo ---- DONE ---- %time%
 
 if %target_name% == demo_game (
